@@ -489,6 +489,78 @@ do
 		end
 	end
 
+
+    function system:Help(functionName : string)
+        if system[functionName] then
+            local value = nil
+			if functionName == "Velocity" then
+				value = [[
+                Example:
+                local character = script.Parent
+	
+	            system:Velocity(character, Vector3.new(50, 0, 50), true, 0.2, 2, false, false)
+                ]]
+            elseif functionName == "Hitbox" then
+                value = [[
+                ***Special conditions***
+                - `ChangeName`: Allows renaming the hitbox. If `special.HitboxName` is set, it will use that name.
+                - `InPlace`: Keeps the hitbox fixed at the character's position instead of moving forward.
+                - `Static`: Prevents velocity prediction, keeping the hitbox at the exact offset.
+                - `GetDebris`: Returns debris items detected in the hitbox range.
+                
+                Example:
+                local character = workspace.Meatloaferss
+                local data, models, debris = system:Hitbox(character, nil, 7, "Block", {"GetDebris"})
+
+                for _, model in pairs(models) do
+                print("Hit model:", model.Name)
+                end
+                for _, item in pairs(debris) do
+                print("Detected debris:", item.Name)
+                end
+                ]]
+            elseif functionName == "Damage" then
+                value = [[
+                ***Special conditions***
+                - `MaxHP%`: Damage is calculated as a percentage of the target’s maximum health.
+                - `HP%`: Damage is calculated as a percentage of the target’s current health.
+                - `IgnoreResistance`: Ignores the target's resistance when calculating damage reduction.
+                - `IgnoreGoodRES`: Prevents resistance from reducing damage if resistance is above 0.
+                
+                Example:
+                local attacker = script.Parent
+                local target = hit.Parent
+
+                system:Damage(attacker, target, nil, 25)
+                ]]
+            elseif functionName == "Tween" then
+                value = [[
+                Example:
+                local door = workspace.Door
+
+                system.Tween(door, 3, {
+                    Position = door.Position + Vector3.new(0, 5, 0),
+                    Transparency = 0.5
+                }, "Bounce", "In")
+                ]]
+            elseif functionName == "MakeSound" then
+                value = [[
+                Example:
+                local sound = game.ReplicatedStorage.Sounds.Wind
+                local properties = {
+                    Volume = 0.5,
+                    PlaybackSpeed = 1.2,
+                    Looping = true
+                }
+
+                system.MakeSound(sound, game.Workspace, properties, true)
+                ]]
+			end
+
+            print(value)
+		end
+    end
+
 	Modular = system
 end
 
