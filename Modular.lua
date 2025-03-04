@@ -558,6 +558,11 @@ do
 			end
 
             print(value)
+        else
+            print("Can't find the method, here's a list:")
+            for i, v in system do
+                print(i)
+            end
 		end
     end
 
