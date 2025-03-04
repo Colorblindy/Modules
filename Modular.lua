@@ -316,9 +316,9 @@ do
 						continue 
 					end
 
+					task.wait(1)
 					duration -= 1
 					if duration <= 0 then break end
-					task.wait(1)
 				end
 				
 				humanoid.PlatformStand = false
