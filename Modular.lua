@@ -502,11 +502,11 @@ do
                 ]]
             elseif functionName == "Hitbox" then
                 value = [[
-                ***Special conditions***
-                - `ChangeName`: Allows renaming the hitbox. If `special.HitboxName` is set, it will use that name.
-                - `InPlace`: Keeps the hitbox fixed at the character's position instead of moving forward.
-                - `Static`: Prevents velocity prediction, keeping the hitbox at the exact offset.
-                - `GetDebris`: Returns debris items detected in the hitbox range.
+                <b>Special conditions</b>
+                - <u>ChangeName</u>: Allows renaming the hitbox. If `special.HitboxName` is set, it will use that name.
+                - <u>InPlace</u>: Keeps the hitbox fixed at the character's position instead of moving forward.
+                - <u>Static</u>: Prevents velocity prediction, keeping the hitbox at the exact offset.
+                - <u>GetDebris</u>: Returns debris items detected in the hitbox range.
                 
                 Example:
                 local character = workspace.Meatloaferss
@@ -521,11 +521,11 @@ do
                 ]]
             elseif functionName == "Damage" then
                 value = [[
-                ***Special conditions***
-                - `MaxHP%`: Damage is calculated as a percentage of the target’s maximum health.
-                - `HP%`: Damage is calculated as a percentage of the target’s current health.
-                - `IgnoreResistance`: Ignores the target's resistance when calculating damage reduction.
-                - `IgnoreGoodRES`: Prevents resistance from reducing damage if resistance is above 0.
+                <b>Special conditions</b>
+                - <u>MaxHP%</u>: Damage is calculated as a percentage of the target’s maximum health.
+                - <u>HP%</u>: Damage is calculated as a percentage of the target’s current health.
+                - <u>IgnoreResistance</u>: Ignores the target's resistance when calculating damage reduction.
+                - <u>IgnoreGoodRES</u>: Prevents resistance from reducing damage if resistance is above 0.
                 
                 Example:
                 local attacker = script.Parent
@@ -557,7 +557,7 @@ do
                 ]]
 			end
 
-            print(value)
+            printf(value)
         else
             print("Can't find the method, here's a list:")
             for i, v in system do
