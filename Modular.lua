@@ -557,7 +557,7 @@ do
                 ]]
             else
                 value = [[Help is used to show how a method works. Like what you're seeing right now.]]
-			end
+            end
 
             printf(value)
         else
