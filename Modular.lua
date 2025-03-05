@@ -555,6 +555,8 @@ do
 
                 system.MakeSound(sound, game.Workspace, properties, true)
                 ]]
+            else
+                value = [[Help is used to show how a method works. Like what you're seeing right now.]]
 			end
 
             printf(value)
