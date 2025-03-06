@@ -57,20 +57,13 @@ function system:Status(target:Model, case:string, duration)
 					bodyPos.Position = pos.Position
 					bodyPos.Parent = prim
 
-					local dest = stun.Destroying:Once(function()
-						bodyPos:Destroy()
-					end)
-
-					while stun.Value > 0 do
+					while stun.Value > 0 or not stun.Parent do
 						task.wait(1)
 						stun.Value -= 1
 					end
 
 					bodyPos:Destroy()
 					stun:Destroy()
-					dest:Disconnect()
-					print(dest)
-					task.wait()
 				]], workspace, stun, target)
 			end
 		end
