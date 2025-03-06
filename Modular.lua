@@ -68,7 +68,7 @@ function system:Status(target:Model, case:string, duration)
 					printf("Ended stun") 
 
 					bodyPos:Destroy()
-					stun.Parent = nil
+					game:GetService"Debris":AddItem(stun, 0.3)
 				]], workspace, stun, target)
 			end
 		end
