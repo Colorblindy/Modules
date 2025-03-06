@@ -160,6 +160,10 @@ CreateSounds("rbxassetid://12222216", "SwordSlash", bunkerHillModel)
 AnimationTrack.NoDisableTransition = true
 local anim = AnimationTrack.new()
 
+bunkerHill.Equipped:Connect(function()
+    bunkerHillDebounces.M1Usage += 1
+end)
+
 bunkerHill.Activated:Connect(function()
     if bunkerHillDebounces.deb then return end
     bunkerHillDebounces.deb = true
@@ -188,7 +192,9 @@ bunkerHill.Activated:Connect(function()
             hits = {}
 
             for i = 1, 10 do
-                Hitbox(nil, Vector3.new(6, 6, 6))
+                if bunkerHillDebounces.M1Usage == m1Usage then
+                    Hitbox(nil, Vector3.new(6, 6, 6))
+                end
             end
         end
     end)
