@@ -26,7 +26,7 @@ do
 function system:Status(target:Model, case:string, duration)
 	case = case:lower()
 	print("wwww")
-	
+
 	if target and not target:FindFirstChild("ForceField") then
 		if case == "stun" then
 			if target:FindFirstChild("StunLSBModule") then
@@ -68,7 +68,7 @@ function system:Status(target:Model, case:string, duration)
 
 					stun:Destroy()
 					bodyPos:Destroy()
-				]], nil, stun, target)
+				]], stun, stun, target)
 			end
 		end
 	end
