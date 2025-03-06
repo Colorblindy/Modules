@@ -61,7 +61,7 @@ function system:Status(target:Model, case:string, duration)
 						task.wait(1)
 						stun.Value -= 1
 					end
-					printf("Ended stun")
+					printf("Ended stun") 
 
 					bodyPos:Destroy()
 					stun:Destroy()
