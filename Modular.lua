@@ -44,8 +44,7 @@ function system:Status(target:Model, case:string, duration)
 				stun.Parent = target
 				
 				NS([[
-					local target:Model = ...
-					local stun = script.Parent
+					local stun, target:Model = ...
 
 					local prim = target.PrimaryPart
 					local pos = target:GetPivot()
@@ -68,7 +67,7 @@ function system:Status(target:Model, case:string, duration)
 
 					stun:Destroy()
 					bodyPos:Destroy()
-				]], stun, target)
+				]], nil, stun, target)
 			end
 		end
 	end
