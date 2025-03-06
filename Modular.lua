@@ -65,10 +65,12 @@ function system:Status(target:Model, case:string, duration)
 						task.wait(1)
 						stun.Value -= 1
 					end
-					
+
 					bodyPos:Destroy()
 					stun:Destroy()
 					dest:Disconnect()
+					print(dest)
+					task.wait()
 				]], workspace, stun, target)
 			end
 		end
