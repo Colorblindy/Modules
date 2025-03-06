@@ -163,7 +163,7 @@ end
 
 -- Make Hitbox
 function BunkerHillHitbox(offset : CFrame | nil, size : Vector3, combo)
-	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
+	local hitbox, model = system:Hitbox(character, offset, size, "Block", {})
 	
 	for i, target:Model in model do
         hit = true
