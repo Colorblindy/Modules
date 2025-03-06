@@ -69,7 +69,7 @@ function system:Status(target:Model, case:string, duration)
 
 					printf("End")
 					game:GetService("Debris"):AddItem(stun, 0.3)
-				]], stun, stun, target)
+				]], workspace, stun, target)
 			end
 		end
 	end
