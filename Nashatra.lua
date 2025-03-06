@@ -122,14 +122,14 @@ end
 
 --# Effects
 
-function StudBlood(count : number)
+function StudBlood(part : BasePart, count : number)
     task.spawn(function()
         for i = 1, count do
             local blood = Instance.new("Part")
             blood.Size = Vector3.one
             blood.Material = "Plastic"
             blood.CanQuery = false
-            blood.CFrame = root.CFrame
+            blood.CFrame = part.CFrame
             blood.Shape = "Ball"
             blood.Color = Color3.new(0.9, 0, 0)
             
@@ -151,7 +151,7 @@ function StudBlood(count : number)
 end
 
 -- Make Hitbox
-function Hitbox(offset : CFrame | nil, size : Vector3)
+function BunkerHillHitbox(offset : CFrame | nil, size : Vector3, combo)
 	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
 	
 	for i, target:Model in model do
@@ -173,15 +173,15 @@ function Hitbox(offset : CFrame | nil, size : Vector3)
                 --|| hit variables
     
                 local damage = 10
-                local getCombo = bunkerCombo
+                local getCombo = combo
     
-                StudBlood(math.random(1, 7))
+                StudBlood(hroot, math.random(1, 7))
 
                 if getCombo ~= 3 then
                     system:Status(target, "stun", 1.5)
                     system:Damage(character, target, player, damage, {"MaxHP%"})
                 else
-                    for i, v:Instance in pairs(target:GetChildren()) do
+                    for i, v:Instance in pairs(target:GetDescendants()) do
                         if v.Name == "StunPos" and v:IsA"BodyPosition" then
                             v:Destroy()
                         end
@@ -257,7 +257,7 @@ bunkerHill.Activated:Connect(function()
 
             for i = 1, 10 do
                 if bunkerHillDebounces.M1Usage == m1Usage then
-                    Hitbox(nil, Vector3.new(6, 6, 6))
+                    BunkerHillHitbox(nil, Vector3.new(6, 6, 6), comboGet)
                 end
 
                 task.wait()
@@ -274,7 +274,7 @@ bunkerHill.Activated:Connect(function()
 
     --# debounce and combo main
     local secondDelay = 0.55
-    if comboGet ~= 3 then
+    if comboGet < 3 then
         bunkerCombo += 1
     else
         bunkerCombo = 1

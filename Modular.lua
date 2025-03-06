@@ -330,28 +330,31 @@ end
 		--# ragdoll
 		if ragdollTime and ragdollTime > 0 then
 			if characterOrPart:IsA("Model") then
-				NS([[
-				local character, duration = ...
-				local humanoid = character:FindFirstChildOfClass("Humanoid")
-				local root = humanoid.RootPart or character:FindFirstChild("HumanoidRootPart")
-				
-				--|| main
-				
-				humanoid.PlatformStand = true
-				
-				while true do
-					if root.AssemblyLinearVelocity.Magnitude > 0.3 then 
-						task.wait()
-						continue 
+				pcall(function()
+					NS([[
+					local character, duration = ...
+					local humanoid = character:FindFirstChildOfClass("Humanoid")
+					local root = humanoid.RootPart or character:FindFirstChild("HumanoidRootPart")
+					
+					--|| main
+					
+					humanoid.PlatformStand = true
+					
+					while true do
+						if root.AssemblyLinearVelocity.Magnitude > 0.3 then 
+							task.wait()
+							continue 
+						end
+
+						task.wait(1)
+						duration -= 1
+						if duration <= 0 then break end
 					end
 
-					task.wait(1)
-					duration -= 1
-					if duration <= 0 then break end
-				end
-				
-				humanoid.PlatformStand = false
-				]], characterOrPart, characterOrPart, ragdollTime)
+					humanoid.PlatformStand = false
+					print("Unragdoll")
+					]], characterOrPart, characterOrPart, ragdollTime)
+				end)
 			end
 		end
 		--# parent
