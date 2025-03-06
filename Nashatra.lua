@@ -123,12 +123,12 @@ function Hitbox(offset : CFrame | nil, size : Vector3)
 	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
 	local hit = false
 	
-	for i, character in model do
-		if not table.find(hits, character) then
-			table.insert(hits, character)
+	for i, target in model do
+		if not table.find(hits, target) then
+			table.insert(hits, target)
 			
-			local fhum:Humanoid = character:FindFirstChildOfClass("Humanoid")
-			local fplr = game.Players:GetPlayerFromCharacter(character)
+			local fhum:Humanoid = target:FindFirstChildOfClass("Humanoid")
+			local fplr = game.Players:GetPlayerFromCharacter(target)
 
 			if fhum.Health > 0 then
 				hit = true
@@ -140,7 +140,7 @@ function Hitbox(offset : CFrame | nil, size : Vector3)
 
             local damage = 6
 
-            system:Status(character, "stun", 1.5)
+            system:Status(target, "stun", 1.5)
 		end
 	end
 	

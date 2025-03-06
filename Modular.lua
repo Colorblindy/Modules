@@ -25,6 +25,7 @@ do
 ]=====]
 function system:Status(target:Model, case:string, duration)
 	case = case:lower()
+	print("wwww")
 	
 	if target and not target:FindFirstChild("ForceField") then
 		if case == "stun" then
