@@ -205,7 +205,7 @@ bunkerHill.Activated:Connect(function()
 
     --# combo reset
     task.delay(0.9, function()
-        if m1Usage == bunkerHillDebounces.M1Usage then
+        if bunkerHillDebounces.M1Usage == m1Usage then
             bunkerCombo = 1
         end
     end)
