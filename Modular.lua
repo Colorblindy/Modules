@@ -25,50 +25,17 @@ do
 ]=====]
 function system:Status(target:Model, case:string, duration)
 	case = case:lower()
-	print("wwww")
 
 	if target and not target:FindFirstChild("ForceField") then
 		if case == "stun" then
-			if target:FindFirstChild("StunLSBModule") then
-				local stun = target:FindFirstChild("StunLSBModule")
-				local getMax = stun:GetAttribute("Maximum")
-				
-				if duration >= getMax then
-					stun:SetAttribute("Maximum", duration)
-					stun.Value = duration
-				end
-			else
-				local stun = Instance.new("NumberValue")
-				stun.Name = "StunLSBModule"
-				stun:SetAttribute("Maximum", duration)
-				stun.Value = duration
-				stun.Parent = target
-				
-				NS([[
-					local stun, target:Model = ...
+			local bodyPos = Instance.new("BodyPosition")
+			bodyPos.MaxForce = Vector3.one * 1e5
+			bodyPos.D = 50
+			bodyPos.P = 1e7
+			bodyPos.Position = target:GetPivot().Position
+			bodyPos.Parent = target.PrimaryPart
 
-					local prim = target.PrimaryPart
-					local pos = target:GetPivot()
-
-					local bodyPos = Instance.new("BodyPosition")
-					bodyPos.MaxForce = Vector3.one * 1e5
-					bodyPos.D = 50
-					bodyPos.P = 1e7
-					bodyPos.Position = pos.Position
-					bodyPos.Parent = prim
-
-					while stun.Value > 0 or not stun.Parent do
-						task.wait(1)
-						stun.Value -= 1
-					end
-					printf("Ended stun") 
-
-					bodyPos:Destroy()
-					task.delay(0.65, function()
-						stun:Destroy()
-					end)
-				]], target, stun, target)
-			end
+			Debris:AddItem(bodyPos, duration)
 		end
 	end
 end
