@@ -65,9 +65,10 @@ function system:Status(target:Model, case:string, duration)
 						task.wait(1)
 						stun.Value -= 1
 					end
-
-					stun:Destroy()
 					bodyPos:Destroy()
+
+					printf("End")
+					game:GetService("Debris"):AddItem(stun, 0.3)
 				]], stun, stun, target)
 			end
 		end
