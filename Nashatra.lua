@@ -56,6 +56,40 @@ local bunkerCombo = 1
 local hits = {}
 local hit = false
 
+--# remote
+local client = Instance.new("RemoteEvent")
+client.Name = "Client"
+client.Parent = character
+NLS([[
+    local remote = ...
+
+    remote.OnClientEvent:Connect(function(case, special)
+        if not special or typeof(special) ~= "table" then
+            special = {special}
+        end
+
+        if case == "HitboxVisualize" then
+            if owner:GetAttribute("HitboxDebug") then
+                local hitbox = Instance.new("Part")
+                hitbox.Material = "ForceField"
+                hitbox.Anchored = true
+                hitbox.Massless = true
+                hitbox.CanQuery, hitbox.CanTouch, hitbox.CanCollide = false, false, false
+                hitbox.Transparency = 0
+                hitbox.Color = special[2] and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+                for i, v in pairs(special[1]) do
+                    hitbox[i] = v
+                end
+
+                hitbox.Name = "VISUALIZATION_"..game:GetService("HttpService"):GenerateGUID(false)..""
+                hitbox.Parent = workspace
+
+                game:GetService("Debris"):AddItem(hitbox, 3)
+            end
+        end
+    end)
+]], nil, client)
+
 --|| function
 
 function CreateTool(jointType : string, part0 : BasePart, part1 : BasePart, C0 : CFrame, C1 : CFrame)
@@ -95,29 +129,6 @@ end
 
 function GetSound(parent : Instance, name : string)
     return parent:FindFirstChild(name)
-end
-
-function HitboxDebug(hitboxSettings : {any}, hit : boolean)
-    NLS([[
-        local hitboxSetting, player, hit = ...
-        if player:GetAttribute("HitboxDebug") then
-            local hitbox = Instance.new("Part")
-		    hitbox.Material = "ForceField"
-		    hitbox.Anchored = true
-		    hitbox.Massless = true
-		    hitbox.CanQuery, hitbox.CanTouch, hitbox.CanCollide = false, false, false
-		    hitbox.Transparency = 0
-		    hitbox.Color = hit and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-		    for i, v in pairs(hitboxSetting) do
-				hitbox[i] = v
-			end
-        
-		    hitbox.Name = "VISUALIZATION_"..game:GetService("HttpService"):GenerateGUID(false)..""
-		    hitbox.Parent = workspace
-        
-		    game:GetService("Debris"):AddItem(hitbox, 3)
-        end
-    ]], nil, hitboxSettings, player, hit)
 end
 
 --# Effects
@@ -193,7 +204,7 @@ function BunkerHillHitbox(offset : CFrame | nil, size : Vector3, combo)
 		end
 	end
 	
-	HitboxDebug(hitbox, hit)
+	client:FireClient(player, "HitboxVisualize", {hitbox, hit})
 end
 
 --|| main
