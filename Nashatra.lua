@@ -1,3 +1,4 @@
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -119,33 +120,80 @@ function HitboxDebug(hitboxSettings : {any}, hit : boolean)
     ]], nil, hitboxSettings, player, hit)
 end
 
+--# Effects
+
+function StudBlood(count : number)
+    task.spawn(function()
+        for i = 1, count do
+            local blood = Instance.new("Part")
+            blood.Size = Vector3.one
+            blood.Material = "Plastic"
+            blood.CanQuery = false
+            blood.CFrame = root.CFrame
+            blood.Shape = "Ball"
+            blood.Color = Color3.new(0.9, 0, 0)
+            
+            local mesh = Instance.new("BlockMesh")
+            mesh.Parent = blood
+            
+            blood.Parent = workspace
+            
+            blood.AssemblyLinearVelocity = Vector3.new(
+                math.random(-7, 7), 15, math.random(-7, 7)
+            ) * 1.5
+            blood.AssemblyAngularVelocity = Vector3.new(
+                math.random(-5, 5), math.random(-5, 5), math.random(-5, 5)
+            )
+        
+            Debris:AddItem(blood, 4)
+        end
+    end)
+end
+
 -- Make Hitbox
 function Hitbox(offset : CFrame | nil, size : Vector3)
 	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
 	
-	for i, target in model do
+	for i, target:Model in model do
+        hit = true
+
 		if not table.find(hits, target) then
 			table.insert(hits, target)
 			
 			local fhum:Humanoid = target:FindFirstChildOfClass("Humanoid")
 			local fplr = game.Players:GetPlayerFromCharacter(target)
 
-			if fhum.Health > 0 then
-				hit = true
-			end
+            if fhum then
+                if fhum.Health > 0 then
+                    hit = true
+                end
+    
+                local hroot = fhum.RootPart
+    
+                --|| hit variables
+    
+                local damage = 10
+                local getCombo = bunkerCombo
+    
+                StudBlood(math.random(1, 7))
 
-			local hroot = fhum.RootPart
-
-            --|| hit variables
-
-            local damage = 6
-
-            system:Status(target, "stun", 1.5)
+                if getCombo ~= 3 then
+                    system:Status(target, "stun", 1.5)
+                    system:Damage(character, target, player, damage, {"MaxHP%"})
+                else
+                    for i, v:Instance in pairs(target:GetChildren()) do
+                        if v.Name == "StunPos" and v:IsA"BodyPosition" then
+                            v:Destroy()
+                        end
+                    end
+                    system:Velocity(target, root.CFrame.LookVector * 35, false, 0.2, 3, nil, nil)
+                    system:Damage(character, target, player, damage + 15, {"MaxHP%"})
+                end
+            end
 		end
 	end
 	
 	HitboxDebug(hitbox, hit)
-	task.wait()
 end
 
 --|| main
@@ -211,6 +259,8 @@ bunkerHill.Activated:Connect(function()
                 if bunkerHillDebounces.M1Usage == m1Usage then
                     Hitbox(nil, Vector3.new(6, 6, 6))
                 end
+
+                task.wait()
             end
         end
     end)

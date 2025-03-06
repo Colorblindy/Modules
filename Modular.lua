@@ -31,8 +31,9 @@ function system:Status(target:Model, case:string, duration)
 			local bodyPos = Instance.new("BodyPosition")
 			bodyPos.MaxForce = Vector3.one * 1e5
 			bodyPos.D = 50
-			bodyPos.P = 1e7
+			bodyPos.P = 50
 			bodyPos.Position = target:GetPivot().Position
+			bodyPos.Name = "StunPos"
 			bodyPos.Parent = target.PrimaryPart
 
 			Debris:AddItem(bodyPos, duration)
