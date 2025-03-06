@@ -331,8 +331,9 @@ end
 		if ragdollTime and ragdollTime > 0 then
 			if characterOrPart:IsA("Model") then
 				NS([[
+					local character, duration = ...
+					
 					pcall(function()
-						local character, duration = ...
 						local humanoid = character:FindFirstChildOfClass("Humanoid")
 						local root = humanoid.RootPart or character:FindFirstChild("HumanoidRootPart")
 
