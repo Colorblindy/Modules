@@ -186,7 +186,9 @@ function BunkerHillHitbox(offset : CFrame | nil, size : Vector3, combo)
                 local damage = 10
                 local getCombo = combo
     
-                StudBlood(hroot, math.random(1, 7))
+                if fhum.Health > 0 then
+                    StudBlood(target.Torso, math.random(3, 14))
+                end
 
                 if getCombo ~= 3 then
                     system:Status(target, "stun", 1.5)
