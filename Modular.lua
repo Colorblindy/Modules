@@ -69,8 +69,8 @@ function system:Status(target:Model, case:string, duration)
 
 					bodyPos:Destroy()
 					stun.Name = "DecayedStun"
+					task.wait(0.25)
 					game:GetService("Debris"):AddItem(stun, 0.5)
-					task.wait(0.15)
 				]], stun, stun, target)
 			end
 		end
