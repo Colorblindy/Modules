@@ -57,14 +57,18 @@ function system:Status(target:Model, case:string, duration)
 					bodyPos.Position = pos.Position
 					bodyPos.Parent = prim
 
-					while stun.Value > 0 or not stun.Parent do
+					while true do
 						task.wait(1)
 						stun.Value -= 1
+
+						if stun.Value > 0 or not stun.Parent then
+							break
+						end
 					end
 					printf("Ended stun") 
 
 					bodyPos:Destroy()
-					stun:Destroy()
+					stun.Parent = nil
 				]], workspace, stun, target)
 			end
 		end
