@@ -13,6 +13,68 @@ do
 	--|| main
 
 --[=====[<custom>
+	Applies a status effect to a desired target.
+	
+	<md>
+	**target**: The model to apply the status effect to.
+	**case**: The type of status effect. See below.
+	**duration**: The duration of the status effect.
+	
+	***Available status type***
+	- `Stun`: Prevents the user from attacking, using Items, or calling Helpers. Forcefully slows the user down.
+]=====]
+function system:Status(target:Model, case:string, duration)
+	case = case:lower()
+	
+	if target and not target:FindFirstChild("ForceField") then
+		if case == "stun" then
+			if target:FindFirstChild("StunLSBModule") then
+				local stun = target:FindFirstChild("StunLSBModule")
+				local getMax = stun:GetAttribute("Maximum")
+				
+				if duration >= getMax then
+					stun:SetAttribute("Maximum", duration)
+					stun.Value = duration
+				end
+			else
+				local stun = Instance.new("NumberValue")
+				stun.Name = "StunLSBModule"
+				stun:SetAttribute("Maximum", duration)
+				stun.Value = duration
+				stun.Parent = target
+				
+				NS([[
+					local target:Model = ...
+					local stun = script.Parent
+
+					local prim = target.PrimaryPart
+					local pos = target:GetPivot()
+
+					local bodyPos = Instance.new("BodyPosition")
+					bodyPos.MaxForce = Vector3.one * 1e5
+					bodyPos.D = 50
+					bodyPos.P = 1e7
+					bodyPos.Position = pos.Position
+					bodyPos.Parent = prim
+
+					stun.Destroying:Once(function()
+						bodyPos:Destroy()
+					end)
+
+					while stun.Value > 0 do
+						task.wait(1)
+						stun.Value -= 1
+					end
+
+					stun:Destroy()
+					bodyPos:Destroy()
+				]], stun, target)
+			end
+		end
+	end
+end
+
+--[=====[<custom>
 	Plays a sound with optional property modifications and parent assignment.
 	
 	<md>
@@ -543,6 +605,16 @@ do
                     Transparency = 0.5
                 }, "Bounce", "In")
                 ]]
+			elseif functionName == "Status" then
+				value = [[
+				<b>Available status type<b>
+				- <u>Stun</u>: Prevents the user from attacking, using Items, or calling Helpers. Forcefully slows the user down.
+				
+				Example:
+                local target = hit.Parent
+
+                system:Status(target, "stun", 2)
+				]]
             elseif functionName == "MakeSound" then
                 value = [[
                 Example:

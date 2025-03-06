@@ -124,12 +124,23 @@ function Hitbox(offset : CFrame | nil, size : Vector3)
 	local hit = false
 	
 	for i, character in model do
-		hit = true
-		
 		if not table.find(hits, character) then
 			table.insert(hits, character)
 			
-			print("hit", character)
+			local fhum:Humanoid = character:FindFirstChildOfClass("Humanoid")
+			local fplr = game.Players:GetPlayerFromCharacter(character)
+
+			if fhum.Health > 0 then
+				hit = true
+			end
+
+			local hroot = fhum.RootPart
+
+            --|| hit variables
+
+            local damage = 6
+
+            system:Status(character, "stun", 1.5)
 		end
 	end
 	
