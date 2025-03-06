@@ -57,7 +57,7 @@ function system:Status(target:Model, case:string, duration)
 					bodyPos.Position = pos.Position
 					bodyPos.Parent = prim
 
-					stun.Destroying:Once(function()
+					local dest = stun.Destroying:Once(function()
 						bodyPos:Destroy()
 					end)
 
@@ -65,10 +65,10 @@ function system:Status(target:Model, case:string, duration)
 						task.wait(1)
 						stun.Value -= 1
 					end
+					
 					bodyPos:Destroy()
-
-					printf("End")
 					stun:Destroy()
+					dest:Disconnect()
 				]], workspace, stun, target)
 			end
 		end
