@@ -57,21 +57,14 @@ function system:Status(target:Model, case:string, duration)
 					bodyPos.Position = pos.Position
 					bodyPos.Parent = prim
 
-					while true do
+					while stun.Value > 0 or not stun.Parent do
 						task.wait(1)
 						stun.Value -= 1
-
-						if stun.Value > 0 or not stun.Parent then
-							break
-						end
 					end
 					printf("Ended stun") 
 
-					bodyPos:Destroy()
-					stun.Name = "DecayedStun"
-					task.wait(0.25)
-					game:GetService("Debris"):AddItem(stun, 0.5)
-				]], stun, stun, target)
+					bodyPos:Destroy()game:GetService("Debris"):AddItem(stun, 0.3)
+				]], target, stun, target)
 			end
 		end
 	end
