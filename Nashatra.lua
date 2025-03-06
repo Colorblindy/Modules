@@ -253,10 +253,12 @@ bunkerHill.Activated:Connect(function()
     anim:Stop()
     NewAnimation(anim, "https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/Animations/Nashatra/Combo" .. bunkerCombo .. ".lua")
 
-    --# events
-    task.delay(.25, function()
+      --# events
+      task.delay(.25, function()
         if m1Usage == bunkerHillDebounces.M1Usage then
+            local frame = 10
             if comboGet == 3 then
+                frame = 17
                 system:Velocity(character, root.CFrame.LookVector * 40, nil, nil, nil, true, nil)
                 system.MakeSound(GetSound(bunkerHillModel, "SwordLunge"), bunkerHillModel)
             else
@@ -268,7 +270,7 @@ bunkerHill.Activated:Connect(function()
             hits = {}
             hit = false
 
-            for i = 1, 10 do
+            for i = 1, frame do
                 if bunkerHillDebounces.M1Usage == m1Usage then
                     BunkerHillHitbox(nil, Vector3.new(6, 6, 6), comboGet)
                 end
