@@ -160,8 +160,12 @@ CreateSounds("rbxassetid://12222216", "SwordSlash", bunkerHillModel)
 AnimationTrack.NoDisableTransition = true
 local anim = AnimationTrack.new()
 
-bunkerHill.Equipped:Connect(function()
+bunkerHill.Unequipped:Connect(function()
     bunkerHillDebounces.M1Usage += 1
+
+    if bunkerCombo > 1 then
+        bunkerCombo = 1
+    end
 end)
 
 bunkerHill.Activated:Connect(function()
