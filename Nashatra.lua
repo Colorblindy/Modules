@@ -53,6 +53,7 @@ local bunkerCombo = 1
 
 --# hitbox
 local hits = {}
+local hit = false
 
 --|| function
 
@@ -121,7 +122,6 @@ end
 -- Make Hitbox
 function Hitbox(offset : CFrame | nil, size : Vector3)
 	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
-	local hit = false
 	
 	for i, target in model do
 		if not table.find(hits, target) then
@@ -205,6 +205,7 @@ bunkerHill.Activated:Connect(function()
 
             --# hitbox
             hits = {}
+            hit = false
 
             for i = 1, 10 do
                 if bunkerHillDebounces.M1Usage == m1Usage then
