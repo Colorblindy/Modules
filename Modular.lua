@@ -456,9 +456,9 @@ do
 
 		local pos = nil
 		if table.find(special, "InPlace") then
-			pos = character:GetPivot() * offset
+			pos = root:GetPivot() * offset
 		else
-			pos = (character:GetPivot() * CFrame.new(0, 0, -size.Z/2)) * offset
+			pos = (root:GetPivot() * CFrame.new(0, 0, -size.Z/2)) * offset
 		end
 
 		if not table.find(special, "Static") then

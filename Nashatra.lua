@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --|| variables
 
@@ -50,6 +51,9 @@ local bunkerHillDebounces = {
 }
 local bunkerCombo = 1
 
+--# hitbox
+local hits = {}
+
 --|| function
 
 function CreateTool(jointType : string, part0 : BasePart, part1 : BasePart, C0 : CFrame, C1 : CFrame)
@@ -80,15 +84,67 @@ function NewAnimation(animTrack, link : string)
     end
 end
 
-function CreateSounds(id : string, parent : Instance)
+function CreateSounds(id : string, name : string, parent : Instance)
     local sound = Instance.new("Sound")
     sound.SoundId = id
+    sound.Name = name
     sound.Parent = parent
+end
 
-    return sound
+function GetSound(parent : Instance, name : string)
+    return parent:FindFirstChild(name)
+end
+
+function HitboxDebug(hitboxSettings : {any}, hit : boolean)
+    NLS([[
+        local hitboxSetting, player, hit = ...
+        if player:GetAttribute("HitboxDebug") then
+            local hitbox = Instance.new("Part")
+		    hitbox.Material = "ForceField"
+		    hitbox.Anchored = true
+		    hitbox.Massless = true
+		    hitbox.CanQuery, hitbox.CanTouch, hitbox.CanCollide = false, false, false
+		    hitbox.Transparency = 0
+		    hitbox.Color = hit and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+		    for i, v in pairs(hitboxSetting) do
+				hitbox[i] = v
+			end
+        
+		    hitbox.Name = "VISUALIZATION_"..game:GetService("HttpService"):GenerateGUID(false)..""
+		    hitbox.Parent = workspace
+        
+		    game:GetService("Debris"):AddItem(hitbox, 3)
+        end
+    ]], nil, hitboxSettings, player, hit)
+end
+
+-- Make Hitbox
+function Hitbox(offset : CFrame | nil, size : Vector3)
+	local hitbox, model = system:Hitbox(character, offset, size, "Block", {"Static"})
+	local hit = false
+	
+	for i, character in model do
+		hit = true
+		
+		if not table.find(hits, character) then
+			table.insert(hits, character)
+			
+			print("hit", character)
+		end
+	end
+	
+	HitboxDebug(hitbox, hit)
+	task.wait()
 end
 
 --|| main
+
+--# make massless (for velocity usage)
+for i, v:Instance in pairs(character:GetChildren()) do
+    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+        v.Massless = true
+    end
+end
 
 --# tool creation
 local bunkerHill = CreateTool("Motor6D", character["Right Arm"], bunkerHillModel, CFrame.new(0, -0.950000048, -1.90734863e-06, -1, 7.10542736e-14, -4.43421748e-19, 1.9100593e-19, 5.23931752e-23, -1, -7.10542736e-14, -1, 5.23931752e-23), CFrame.new(-1.31450365e-13, -1.84999943, 5.76324107e-24, 1, -1.2166914e-40, 1.00966327e-18, -6.87701234e-41, 1, -2.51487241e-22, 1.00966327e-18, -2.51487241e-22, 1))
@@ -96,6 +152,12 @@ bunkerHill.Name = "Sword of Bunker Hill"
 bunkerHill.ToolTip = "A worthy holder will know peace in death."
 bunkerHill.Parent = player.Backpack
 
+--# set up sounds
+CreateSounds("rbxassetid://12222208", "SwordLunge", bunkerHillModel)
+CreateSounds("rbxassetid://12222216", "SwordSlash", bunkerHillModel)
+
+--# animation starter
+AnimationTrack.NoDisableTransition = true
 local anim = AnimationTrack.new()
 
 bunkerHill.Activated:Connect(function()
@@ -108,6 +170,7 @@ bunkerHill.Activated:Connect(function()
     local m1Usage = bunkerHillDebounces.M1Usage
     local extraCD = 0
 
+    anim:Stop()
     NewAnimation(anim, "https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/Animations/Nashatra/Combo" .. bunkerCombo .. ".lua")
 
     --# events
@@ -115,13 +178,18 @@ bunkerHill.Activated:Connect(function()
         if m1Usage == bunkerHillDebounces.M1Usage then
             if comboGet == 3 then
                 system:Velocity(character, root.CFrame.LookVector * 40, nil, nil, nil, true, nil)
-                system.MakeSound(CreateSounds("rbxassetid://12222208", bunkerHillModel))
+                system.MakeSound(GetSound(bunkerHillModel, "SwordLunge"), bunkerHillModel)
             else
                 system:Velocity(character, root.CFrame.LookVector * 20, nil, nil, nil, true, nil)
-                system.MakeSound(CreateSounds("rbxassetid://12222216", bunkerHillModel))
+                system.MakeSound(GetSound(bunkerHillModel, "SwordSlash"), bunkerHillModel)
             end
 
-            --# gonna make hitbox here later
+            --# hitbox
+            hits = {}
+
+            for i = 1, 10 do
+                Hitbox(nil, Vector3.new(6, 6, 6))
+            end
         end
     end)
 
