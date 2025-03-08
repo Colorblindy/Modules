@@ -1,4 +1,5 @@
 local Debris = game:GetService("Debris")
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -138,22 +139,26 @@ function StudBlood(part : BasePart, count : number)
         for i = 1, count do
             local blood = Instance.new("Part")
             blood.Size = Vector3.one
-            blood.Material = "Plastic"
             blood.CanQuery = false
             blood.CFrame = part.CFrame
             blood.Shape = "Ball"
             blood.Color = Color3.new(0.9, 0, 0)
-            
-            local mesh = Instance.new("BlockMesh")
-            mesh.Parent = blood
-            
+
+            local blockmesh = Instance.new('SpecialMesh')
+            blockmesh.MeshType = Enum.MeshType.Brick
+            blockmesh.Scale = Vector3.new(1, 0.5, 1)
+            blockmesh.Parent = blood
+
             blood.Parent = workspace
+            blood.TopSurface = Enum.SurfaceType.Weld
+            blood.BottomSurface = Enum.SurfaceType.Weld
+            blood.Material = "Plastic"
             
             blood.AssemblyLinearVelocity = Vector3.new(
-                math.random(-7, 7), 15, math.random(-7, 7)
+                math.random(-3, 3), 5, math.random(-3, 3)
             ) * 1.5
             blood.AssemblyAngularVelocity = Vector3.new(
-                math.random(-5, 5), math.random(-5, 5), math.random(-5, 5)
+                math.random(-2, 2), math.random(-2, 2), math.random(-2, 2)
             )
         
             Debris:AddItem(blood, 4)
