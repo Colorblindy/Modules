@@ -317,7 +317,7 @@ end
 
 		local bodyVelocity = Instance.new("BodyVelocity")
 		bodyVelocity.MaxForce = (Vector3.one * 1e7) * Vector3.new(
-			velocity.X <= 0 and 0 or 1, 0, velocity.Z <= 0 and 0 or 1)
+			velocity.X == 0 and 0 or 1, 0, velocity.Z == 0 and 0 or 1)
 		bodyVelocity.Velocity = velocity
 		if yForce then
 			bodyVelocity.MaxForce += Vector3.new(0, 1e7, 0)
