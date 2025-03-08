@@ -298,7 +298,7 @@ end
 	
 	system:Velocity(character, Vector3.new(50, 0, 50), true, 0.2, 2, false, false)
 ]=====]
-	function system:Velocity(characterOrPart:Model | Part, velocity:Vector3, yForce : boolean, duration:number, sit:boolean, bypass:boolean, forceRewrite:boolean)
+	function system:Velocity(characterOrPart:Model | Part, velocity:Vector3, yForce : boolean, keepVelocity : boolean, duration:number, sit:boolean, bypass:boolean, forceRewrite:boolean)
 		assert(characterOrPart, "A character or a Part is needed for this operation")
 		assert(characterOrPart:IsA("Part") or characterOrPart:IsA("Model"), "Velocity::Argument 1 should be Part or Model")
 		assert(velocity, "Velocity is needed for this operation")
@@ -316,11 +316,13 @@ end
 
 
 		local bodyVelocity = Instance.new("BodyVelocity")
-		bodyVelocity.MaxForce = (Vector3.one * 1e7) * Vector3.new(
-			velocity.X == 0 and 0 or 1, 0, velocity.Z == 0 and 0 or 1)
+		bodyVelocity.MaxForce = (Vector3.one * 1e7) * Vector3.new(1, 0, 1)
 		bodyVelocity.Velocity = velocity
 		if yForce then
-			bodyVelocity.MaxForce += Vector3.new(0, 1e7, 0)
+			bodyVelocity.MaxForce += Vector3.new(
+				not keepVelocity and -1e7 or 0, 
+				1e7, 
+				not keepVelocity and -1e7 or 0)
 		end
 
 		--# bypasser/anti check
