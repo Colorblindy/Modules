@@ -229,7 +229,7 @@ function BunkerHillHitbox(offset : CFrame | nil, size : Vector3, combo)
                             v:Destroy()
                         end
                     end
-                    system:Velocity(target, root.CFrame.LookVector * 35, false, 0.2, 3, nil, nil)
+                    system:Velocity(target, root.CFrame.LookVector * 35, false, true, 0.2, 3, nil, nil)
                     system:Damage(character, target, player, damage + 15, {"MaxHP%"})
                 end
             end
@@ -295,10 +295,10 @@ bunkerHill.Activated:Connect(function()
             local frame = 10
             if comboGet == 3 then
                 frame = 17
-                system:Velocity(character, root.CFrame.LookVector * 40, nil, nil, nil, true, nil)
+                system:Velocity(character, root.CFrame.LookVector * 40, nil, true, nil, nil, true, nil)
                 system.MakeSound(GetSound(bunkerHillModel, "SwordLunge"), bunkerHillModel)
             else
-                system:Velocity(character, root.CFrame.LookVector * 20, nil, nil, nil, true, nil)
+                system:Velocity(character, root.CFrame.LookVector * 20, nil, true, nil, nil, true, nil)
                 system.MakeSound(GetSound(bunkerHillModel, "SwordSlash"), bunkerHillModel)
             end
 
@@ -350,8 +350,8 @@ remote.OnServerEvent:Connect(function(plr, key)
             if bunkerHillDebounces.E then return end
             bunkerHillDebounces.E = true
 
-            local velo:BodyVelocity = system:Velocity(character, Vector3.new(0, 8, 0), true, 6, nil, true, nil)
-            print(velo.MaxForce)
+            local velo:BodyVelocity = system:Velocity(character, Vector3.new(0, 8, 0), true, false, 6, nil, true, nil)
+            
             system.MakeSound(GetSound(root, "JetBoots"), root, {Volume = 1})
             local exhaust = task.spawn(function()
                 while true do
