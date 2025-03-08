@@ -8,6 +8,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local system = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/Modular.lua"))();
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 
+shared.system = system
+shared.AnimationTrack = AnimationTrack
+
 local assets = nil
 local anims = loadstring
 
@@ -23,7 +26,7 @@ remote.Name = "Hotkey"
 remote.Parent = character
 NLS([[
     local UserInputService = game:GetService("UserInputService")
-    local remote = ...
+    local remote = owner.Character:WaitForChild("Hotkey")
 
     UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         if gameProcessedEvent then return end
@@ -36,7 +39,7 @@ NLS([[
             remote:FireServer("F")
         end
     end)
-]], player.PlayerGui, remote)
+]], player.PlayerGui)
 
 --# model setups
 
@@ -81,7 +84,7 @@ local client = Instance.new("RemoteEvent")
 client.Name = "Client"
 client.Parent = character
 NLS([[
-    local client = ...
+    local client = owner.Character:WaitForChild("Client")
 
     client.OnClientEvent:Connect(function(case, special)
         if not special or typeof(special) ~= "table" then
@@ -185,6 +188,7 @@ function StudBlood(part : BasePart, count : number)
         end
     end)
 end
+shared.StudBlood = StudBlood
 
 
 -- Make Hitbox
@@ -347,6 +351,7 @@ remote.OnServerEvent:Connect(function(plr, key)
             bunkerHillDebounces.E = true
 
             local velo:BodyVelocity = system:Velocity(character, Vector3.new(0, 8, 0), true, 6, nil, true, nil)
+            print(velo.MaxForce)
             system.MakeSound(GetSound(root, "JetBoots"), root, {Volume = 1})
             local exhaust = task.spawn(function()
                 while true do
@@ -373,7 +378,6 @@ remote.OnServerEvent:Connect(function(plr, key)
                     )
 
                     NS([[
-                        local StudBlood, system = ...
                         local part = script.Parent
                         
                         part.Touched:Connect(function(hit)
@@ -389,14 +393,14 @@ remote.OnServerEvent:Connect(function(plr, key)
                                 
                                 if fhum then
                                     if fhum.Health > 0 then
-                                        StudBlood(fhum.RootPart, math.random(3, 10))
+                                        shared.StudBlood(fhum.RootPart, math.random(3, 10))
                                     end
 
-                                    system:Damage(owner.Character, hit.Parent, owner, 10, {"MaxHP%"}) 
+                                    shared.system:Damage(owner.Character, hit.Parent, owner, 10, {"MaxHP%"}) 
                                 end
                             end
                         end)
-                    ]], part, StudBlood, system)
+                    ]], part)
 
                     task.delay(3, function()
                         part:SetAttribute("RunOut", true)
