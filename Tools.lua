@@ -7,6 +7,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
 
+local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
+
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
 	Direction: Vector3Value,
@@ -18,14 +20,24 @@ export type HitboxSpecial = {
     "ChangeName" | "InPlace" | "Static" | "GetDebris"
 }
 
--- Variables
+-- Starter Variables
 local owner = owner
 local NS = NS
 local NLS = NLS
 local NewScript = NewScript
 local NewLocalScript = NewLocalScript
 
+--#> Player Variables
+local character : Model = owner.Character
+local backpack : Backpack = owner.Backpack
+local playergui : PlayerGui = owner.PlayerGui
+
+local root : BasePart = character:FindFirstChild("HumanoidRootPart")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+humanoid.UseJumpPower = true
+
 -- COPILOT HINT:
+-- This is Luau, a programming language used in Roblox.
 -- "owner" is a variable in a certain sandbox game scripting, this should be ignored as its actually our Player instance
 
 -- "NLS", "NS" is a function in a certain sandbox game scripting, the full name is "NewLocalScript" and "NewScript"
@@ -63,8 +75,39 @@ do
 
     --|| Main Functions
 
+    -- Creates welding between two parts, with optional properties for the weld
+    -- Optionally, you can pick between Motor6D, Weld, or WeldConstraint
+    function funcs:jointParts(part1 : BasePart, part2 : BasePart, weldType : string, c0_and_c1 : {CFrame})
+        assert(part1 and part2, "Both parts are required for welding!")
+        assert(part1:IsA("BasePart") and part2:IsA("BasePart"), "Both parts must be instances!")
+        assert(weldType == "Motor6D" or weldType == "Weld" or weldType == "WeldConstraint", "Invalid weld type!")
+        
+        local weld = Instance.new(weldType or "WeldConstraint")
+        weld.Name = `{part1.Name}_to_{part2.Name}`
+        weld.Part0 = part1
+        weld.Part1 = part2
+        
+        if weldType ~= "WeldConstraint" then
+            weld.C0 = (c0_and_c1 and c0_and_c1[1]) or CFrame.new()
+            weld.C1 = (c0_and_c1 and c0_and_c1[2]) or CFrame.new()
+        end
+
+        weld.Parent = part1
+        
+        return weld
+    end
+
+    -- Creates a new animation track with AnimationTrack module and sets its properties
+    function funcs:newAnim(animTrack, target : Model, link : string, speed : number)
+        if animTrack then
+            animTrack:setAnimation(link)
+            animTrack:setRig(target or character)
+            animTrack:Play(speed or 1)
+        end
+    end
+
     -- Creates a Tool instance, parents it to the player's Backpack, and returns it
-    function funcs:createTool(toolName : string, tooltip : string, grip : CFrame, handle : boolean, droppable : boolean)
+    function funcs:createTool(model : BasePart, toolName : string, tooltip : string, grip : CFrame, handle : boolean, droppable : boolean)
         local tool = Instance.new("Tool")
         tool.Name = toolName
         tool.ToolTip = tooltip
@@ -72,8 +115,12 @@ do
         tool.RequiresHandle = handle
         tool.CanBeDropped = droppable
 
+        if model then
+            model.Parent = tool
+        end
+
         if owner and owner:FindFirstChild("Backpack") then
-            tool.Parent = owner.Backpack
+            tool.Parent = backpack
         else
             warn("Owner or Backpack not found!")
         end
@@ -306,7 +353,7 @@ do
         attachment.Parent = projectile
         vectorForce.Parent = projectile
 
-        projectile.Parent = workspace.Debris
+        projectile.Parent = workspace
         return projectile, projConfig
     end
 
@@ -317,13 +364,15 @@ do
         local mesh = AssetService:CreateMeshPartAsync(content, {CollisionFidelity = Enum.CollisionFidelity.PreciseConvexDecomposition})
         mesh.Size = size
         
-        if typeof(texture) == "Color3" then
-            mesh.Color = texture
-        elseif typeof(texture) == "string" then
-            if texture:find("rbxassetid://") then
-                mesh.TextureID = texture
-            else
-                mesh.TextureID = "rbxassetid://" .. texture
+        if texture then
+            if typeof(texture) == "Color3" then
+                mesh.Color = texture
+            elseif typeof(texture) == "string" then
+                if texture:find("rbxassetid://") then
+                    mesh.TextureID = texture
+                else
+                    mesh.TextureID = "rbxassetid://" .. texture
+                end
             end
         end
 
@@ -401,7 +450,7 @@ do
         
         --# get player + root + humanoid
         local humanoid = character:FindFirstChildOfClass("Humanoid")
-        local root:Part = humanoid.RootPart or character:FindFirstChild("HumanoidRootPart")
+        local root:Part = character:FindFirstChild("HumanoidRootPart")
         local player = Players:GetPlayerFromCharacter(character)
         if not player then
             player = character
@@ -415,7 +464,7 @@ do
         
         hitbox.Massless = true
         hitbox.Material = Enum.Material.ForceField
-        hitbox.Transparency = 0
+        hitbox.Transparency = 1
         hitbox.Color = Color3.new(1, 0, 0)
         hitbox.Name = `HITBOX_{HttpService:GenerateGUID(false)}`
         if table.find(special, "ChangeName") then
@@ -429,9 +478,9 @@ do
         
         local pos = nil
         if table.find(special, "InPlace") then
-            pos = character:GetPivot() * offset
+            pos = root.CFrame * offset
         else
-            pos = (character:GetPivot() * CFrame.new(0, 0, -size.Z/2)) * offset
+            pos = (root.CFrame * CFrame.new(0, 0, -size.Z/2)) * offset
         end
         
         if not table.find(special, "Static") then
@@ -470,4 +519,165 @@ do
     end
 
     --#<
+end
+
+--|| Start
+
+--# tool list
+local toolList = {
+    ["crucifix"] = {
+        ToolTip = "when faith endures",
+        Grip = CFrame.new(),
+        Handle = false,
+        Droppable = false,
+        
+        Tool = nil :: Tool,
+        Model = nil :: BasePart,
+
+        ModelInfo = {
+            Type = "MeshPart",
+            Mesh = "rbxassetid://88034374571727",
+            Size = Vector3.new(1.98, 0.31, 1.06),
+            Texture = nil,
+
+            -- # mesh properties
+            Name = "Cross",
+            CanCollide = false,
+            CanTouch = false,
+            Anchored = false,
+            Massless = true,
+            CanQuery = false,
+        }
+    }
+}
+
+for i, v in pairs(toolList) do
+    local model = nil
+    if v.ModelInfo then
+        if v.ModelInfo.Type == "MeshPart" then
+            model = funcs:createMesh(v.ModelInfo.Mesh, v.ModelInfo.Texture, v.ModelInfo.Size, nil)
+            for i2, v2 in pairs(v.ModelInfo) do
+                pcall(function()
+                    model[i2] = v2
+                end)
+            end
+        end
+    end
+    
+    local tool = funcs:createTool(model, i, v.ToolTip, v.Grip, v.Handle, v.Droppable)
+    v.Tool = tool
+    v.Model = model
+end
+
+--|| >> Main Tool Functions <<
+
+do -- crucifix
+    local crucifix = toolList["crucifix"]
+    local tool = crucifix.Tool
+    local model = crucifix.Model
+    model.Parent = nil
+
+    local cruxAnim = AnimationTrack.new()
+    cruxAnim.NoDisableTransition = true
+    cruxAnim.lerpFactor = 1
+
+    --#> Highlight
+    local hl = Instance.new("Highlight")
+    hl.Name = "Cross"
+    hl.FillTransparency = 0.3
+    hl.OutlineTransparency = 0
+    hl.Adornee = model
+    hl.DepthMode = Enum.HighlightDepthMode.Occluded
+    hl.Parent = model
+
+    --#> Weld
+    funcs:jointParts(character["Right Arm"], model, "Weld", {CFrame.new(0, -1, -0.36499977111816406, -4.371138828673793e-08, 0, -1, -4.371138828673793e-08, -1, 1.910685465164705e-15, -1, 4.371138828673793e-08, 4.371138828673793e-08)})
+
+    --#> Texturing
+    local faceEnum, maxNumber = Enum.NormalId:GetEnumItems(), #Enum.NormalId:GetEnumItems()
+    for i = 1, maxNumber do
+        local tex = Instance.new("Texture")
+        tex.Transparency = 0.9
+        tex.Color3 = Color3.new(0, 0, 0)
+        tex.Texture = (i == 3 and "rbxassetid://102276212148593") or "rbxassetid://15702060640"
+        tex.Face = faceEnum[i]
+        tex.OffsetStudsV = 0
+        tex.StudsPerTileV = (i == 3 and 0.05) or 10
+        tex.StudsPerTileU = (i == 3 and 10) or 0.05
+        tex.Parent = model
+    end
+
+    --#> Random Crucifix
+    local rand = Random.new():NextInteger(1, 3)
+    model.Material = Enum.Material.Metal
+    if rand == 1 then
+        model.BrickColor = BrickColor.new("Gold")
+    elseif rand == 2 then
+        model.Color = Color3.fromRGB(207, 207, 207)
+        tool.ToolTip = "when faith... endures?"
+    elseif rand == 3 then
+        model.BrickColor = BrickColor.new("Burnt Sienna")
+        model.Material = Enum.Material.Wood
+        tool.ToolTip = "losing faith..."
+    end
+    
+    hl.FillColor, hl.OutlineColor = model.Color, model.Color
+
+    --#> Activate (Hold)
+    local holding = false
+    local hits = {}
+
+    tool.Activated:Connect(function()
+        if not holding then
+            holding = true
+            
+            model.Parent = tool
+            cruxAnim.Looped = true
+            funcs:newAnim(cruxAnim, character, "https://pastebin.com/raw/gBL8K0HC")
+            humanoid.WalkSpeed -= 12
+            humanoid.JumpPower -= 50
+
+            task.spawn(function()
+                while holding do
+                    table.clear(hits)
+
+                    local hitbox, models = funcs:hitbox(character, CFrame.new(0, 0, 0), Vector3.new(7, 6, 7.11), "Block")
+
+                    for i, v in models do
+                        if table.find(hits, v) then continue end
+                        table.insert(hits, v)
+
+                        local humanoid = v:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
+                            local newdamage = humanoid.MaxHealth * (damage/100)
+                            humanoid.Health -= newdamage
+                        end
+                    end
+
+                    task.wait(0.1)
+                end
+            end)
+
+            repeat task.wait() until holding == false
+            cruxAnim.Looped = false
+            humanoid.WalkSpeed += 12
+            humanoid.JumpPower += 50
+
+            model.Parent = nil
+            cruxAnim:Stop()
+        end
+    end)
+
+    tool.Deactivated:Connect(function()
+        if holding then
+            holding = false
+        end
+    end)
+
+    tool.Unequipped:Connect(function()
+        if holding then
+            holding = false
+        end
+    end)
 end
