@@ -57,8 +57,11 @@ NS("local player, item = owner, ...; print(item.Name, player.DisplayName)", work
 local funcs = {}
 
 do
-
     --|| First Setup
+
+    -- SoundStorage is a table that stores sound instances. It is used to manage sound effects and their properties.
+    -- It is initialized as an empty table and can be used to store sound instances for later use.
+    local soundStorage = {}
 
     -- SoundCase is a BindableEvent that allows for sound events to be fired and connected to. It can be used to play or delete sounds based on the case provided.
     -- It is connected to a function that waits for the sound to load, then plays or deletes it based on the case provided.
@@ -519,6 +522,40 @@ do
     end
 
     --#<
+
+    --#> Sound Storage
+
+    function funcs:createPlaceholderSound(id : string, name : string, parent : Instance)
+        if table.find(soundStorage, name) then
+            warn("Sound with the same name already exists! Please make a unique name.")
+            return
+        end
+
+        local sound = Instance.new("Sound")
+
+        if id:find("rbxassetid://") then
+            sound.SoundId = id
+        else
+            sound.SoundId = "rbxassetid://" .. id
+        end
+
+        sound.Name = name
+        sound.Volume = 1
+        sound.Parent = parent
+
+        table.insert(soundStorage, sound)
+    end
+    
+    function funcs.getPlaceholderSound(name : string)
+        for i, v in pairs(soundStorage) do
+            if v.Name == name then
+                return v
+            end
+        end
+        return nil
+    end
+
+    --#<
 end
 
 --|| Start
@@ -581,6 +618,13 @@ do -- crucifix
     cruxAnim.NoDisableTransition = true
     cruxAnim.lerpFactor = 1
 
+    --#> Sounds
+    local sfx = funcs.getPlaceholderSound
+    funcs:createPlaceholderSound("rbxassetid://87336811239109", "crucifix_equip", tool)
+    funcs:createPlaceholderSound("rbxassetid://104858152402890", "crucifix_hit", tool)
+    funcs:createPlaceholderSound("rbxassetid://102564470736802", "crucifix_kill", tool)
+    funcs:createPlaceholderSound("rbxassetid://88281130604468", "crucifix_exorcised", tool)
+
     --#> Highlight
     local hl = Instance.new("Highlight")
     hl.Name = "Cross"
@@ -627,6 +671,10 @@ do -- crucifix
     local holding = false
     local hits = {}
 
+    tool.Equipped:Connect(function()
+        funcs:makeSound(sfx("crucifix_equip"), model)
+    end)
+
     tool.Activated:Connect(function()
         if not holding then
             holding = true
@@ -651,6 +699,9 @@ do -- crucifix
                         if humanoid then
                             local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
                             local newdamage = humanoid.MaxHealth * (damage/100)
+
+                            funcs:makeSound(sfx("crucifix_hit"), humanoid.RootPart)
+
                             humanoid.Health -= newdamage
                         end
                     end
