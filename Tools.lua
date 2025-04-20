@@ -8,7 +8,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
-local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
+local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://pastebin.com/raw/V1FDkqz3"))()
 
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
@@ -478,7 +478,6 @@ do
         
         hitbox.Massless = true
         hitbox.Material = Enum.Material.ForceField
-        printf(debug.HitboxVisualize)
         hitbox.Transparency = debug.HitboxVisualize and 0 or 1
         hitbox.Color = Color3.new(1, 0, 0)
         hitbox.Name = `HITBOX_{HttpService:GenerateGUID(false)}`
@@ -790,7 +789,8 @@ owner.Chatted:Connect(function(msg : string)
             local content = args[3]
             printf(`Debug Print for testing: {content}`)
         elseif debugArg == "d" or debugArg == "dum" or debugArg == "dummy" then
-            local char = funcs:createChar(owner.UserId)
+            local char = createChar(owner.UserId)
+            printf(char)
             char.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None   
             char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
             char.Parent = workspace
