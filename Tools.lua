@@ -672,7 +672,7 @@ do -- crucifix
     local hits = {}
 
     tool.Equipped:Connect(function()
-        funcs:makeSound(sfx("crucifix_equip"), model)
+        funcs:makeSound(sfx("crucifix_equip"), root)
     end)
 
     tool.Activated:Connect(function()
@@ -696,11 +696,11 @@ do -- crucifix
                         table.insert(hits, v)
 
                         local humanoid = v:FindFirstChildOfClass("Humanoid")
-                        if humanoid then
+                        if humanoid and humanoid.Health > 0 then
                             local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
                             local newdamage = humanoid.MaxHealth * (damage/100)
 
-                            funcs:makeSound(sfx("crucifix_hit"), humanoid.RootPart)
+                            funcs:makeSound(sfx("crucifix_hit"), humanoid.RootPart, {TimePosition = 1.2})
 
                             humanoid.Health -= newdamage
                         end
