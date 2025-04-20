@@ -167,13 +167,13 @@ do
                     if humanoid then
                         local ragdollDuration = isNumber and ragdoll or 1
                         
-                        NLS([[
+                        NS([[
                             local target, dur = ...
                             local humanoid = target:WaitForChild("Humanoid")
                             local root = humanoid and (humanoid.RootPart or target:WaitForChild("HumanoidRootPart"))
 
                             if humanoid and humanoid.Health > 0 then
-                                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                                humanoid.PlatformStand = true
                                 while dur > 0 do
                                     if humanoid.Health <= 0 then break end
                                     if root and root.AssemblyLinearVelocity.Magnitude > 0.6 then
@@ -181,9 +181,10 @@ do
                                     else
                                         dur = dur - wait()
                                     end
+                                    humanoid.PlatformStand = true
                                 end
 
-                                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+                                humanoid.PlatformStand = false
                             end
                         ]], nil, character, ragdollDuration)
                     end
@@ -623,6 +624,7 @@ for i, v in pairs(toolList) do
 end
 
 --|| >> Main Tool Functions <<
+local sfx = funcs.getPlaceholderSound
 
 do -- crucifix
     local crucifix = toolList["crucifix"]
@@ -635,7 +637,6 @@ do -- crucifix
     cruxAnim.lerpFactor = 1
 
     --#> Sounds
-    local sfx = funcs.getPlaceholderSound
     funcs:createPlaceholderSound("rbxassetid://87336811239109", "crucifix_equip", tool)
     funcs:createPlaceholderSound("rbxassetid://104858152402890", "crucifix_hit", tool)
     funcs:createPlaceholderSound("rbxassetid://102564470736802", "crucifix_kill", tool)
@@ -713,14 +714,71 @@ do -- crucifix
                         if table.find(hits, v) then continue end
                         table.insert(hits, v)
 
-                        local humanoid = v:FindFirstChildOfClass("Humanoid")
-                        if humanoid and humanoid.Health > 0 then
+                        local fhum = v:FindFirstChildOfClass("Humanoid")
+                        if fhum and fhum.Health > 0 then
+                            local hp = fhum.Health
                             local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
-                            local newdamage = humanoid.MaxHealth * (damage/100)
+                            local newdamage = fhum.MaxHealth * (damage/100)
 
-                            funcs:makeSound(sfx("crucifix_hit"), humanoid.RootPart, {TimePosition = 1.2})
+                            funcs:makeSound(sfx("crucifix_hit"), fhum.RootPart, {TimePosition = 1.2})
+                            local bodyPos = Instance.new("BodyPosition")
+                            bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+                            bodyPos.Position = fhum.RootPart.Position
+                            bodyPos.D = 400
+                            bodyPos.P = 800
+                            bodyPos.Parent = fhum.RootPart
+                            game.Debris:AddItem(bodyPos, 0.1)
+                            
+                            fhum.Health -= newdamage
+                            if hp > 0 and fhum.Health <= 0 then 
+                                funcs:makeSound(sfx("crucifix_kill"), fhum.RootPart)
+                                funcs:makeSound(sfx("crucifix_exorcised"), fhum.RootPart)
 
-                            humanoid.Health -= newdamage
+                                local deathModel = Instance.new("Model")
+                                deathModel.Name = "CrucifixDeath"
+                                local deathHum = Instance.new("Humanoid")
+                                deathHum.Name = "DeadHum"
+                                deathHum.Health = 0
+                                deathHum.MaxHealth = 0
+                                deathHum.Parent = deathModel
+
+                                for i, v:Instance in pairs(v:GetDescendants()) do
+                                    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                                        local newPart = v:Clone()
+                                        v.AssemblyLinearVelocity = Vector3.new(
+                                            math.random(-5, 5),
+                                            math.random(3, 5),
+                                            math.random(-5, 5)
+                                        )
+
+                                        newPart.Massless = true
+                                        newPart.CanCollide = false
+                                        newPart.Anchored = true
+                                        newPart.CanTouch = false
+                                        newPart.CanQuery = false
+                                        newPart.Color = Color3.new(0.596078, 0.596078, 0.596078)
+                                        newPart.Transparency = 0.75
+
+                                        for b, n:Instance in pairs(newPart:GetChildren()) do
+                                            if n:IsA("SpecialMesh") then
+                                                n.TextureId = ""
+                                            elseif n:IsA("Decal") or n:IsA("Texture") then
+                                                n.Transparency = 1
+                                            elseif n:IsA("Weld") or n:IsA("Motor6D") or n:IsA("WeldConstraint") then
+                                                n:Destroy()
+                                            elseif v:IsA("Trail") or v:IsA("ParticleEmitter") then
+                                                n.Enabled = false
+                                            end
+                                        end
+
+                                        funcs:tween(newPart, 5, {Position = newPart.Position + Vector3.new(0, 25, 0)}, "Linear")
+
+                                        newPart.Parent = deathModel
+                                        deathModel.Parent = workspace
+                                        Debris:AddItem(deathModel, 5)
+                                    end
+                                end
+                            end
                         end
                     end
 
@@ -752,6 +810,47 @@ do -- crucifix
 end
 
 --|| >> Miscellaneous <<
+
+-- Play songs on specific tool equips
+-- This is a table that stores songs and their associated tools. It is used to manage the songs that can be played when a specific tool is equipped.
+-- The table contains the song ID and the tools that are associated with it.
+local songs = {
+    ["FAITH"] = {
+        ID = "rbxassetid://74769476274933",
+        Tools = {"crucifix"},
+
+        Properties = {
+            Volume = 0.5,
+            Pitch = 0,
+            Name = "FAITH",
+            Looped = true
+        }
+    }
+}
+
+for i, v in pairs(songs) do
+    local songID = v.ID
+    local tools = v.Tools
+
+    funcs:createPlaceholderSound(songID, i, root)
+    local song = funcs:makeSound(sfx(i), root, v.Properties, true)
+    song:Play()
+
+    for b, n in pairs(tools) do
+        local tool = toolList[n] and toolList[n].Tool
+        
+        if tool then
+            tool.Equipped:Connect(function()
+                if not song.IsPlaying then song.IsPlaying = true end
+                funcs:tween(song, 0.5, {Pitch = 1})
+            end)
+
+            tool.Unequipped:Connect(function()
+                funcs:tween(song, 0.5, {Pitch = 0})
+            end)
+        end
+    end
+end
 
 -- Make all parts in the character massless
 for i, v:Instance in pairs(character:GetChildren()) do
