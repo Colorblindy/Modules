@@ -790,7 +790,6 @@ owner.Chatted:Connect(function(msg : string)
             printf(`Debug Print for testing: {content}`)
         elseif debugArg == "d" or debugArg == "dum" or debugArg == "dummy" then
             local char = createChar(owner.UserId)
-            printf(char)
             char.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None   
             char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
             char.Parent = workspace
