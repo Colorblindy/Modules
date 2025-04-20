@@ -8,6 +8,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
+local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
@@ -21,11 +22,12 @@ export type HitboxSpecial = {
 }
 
 -- Starter Variables
-local owner = owner
+local owner:Player = owner
 local NS = NS
 local NLS = NLS
 local NewScript = NewScript
 local NewLocalScript = NewLocalScript
+local printf, warnf = printf, warnf
 
 --#> Player Variables
 local character : Model = owner.Character
@@ -39,6 +41,8 @@ humanoid.UseJumpPower = true
 -- COPILOT HINT:
 -- This is Luau, a programming language used in Roblox.
 -- "owner" is a variable in a certain sandbox game scripting, this should be ignored as its actually our Player instance
+
+-- "printf" and "warnf" is a output debugging function for the sandbox, outputting to the in-game console instead of the Roblox Developer Console
 
 -- "NLS", "NS" is a function in a certain sandbox game scripting, the full name is "NewLocalScript" and "NewScript"
 -- "NLS" is used to create a LocalScript in runtime, and "NS" is used to create a Script in runtime
@@ -54,14 +58,21 @@ NS("local player, item = owner, ...; print(item.Name, player.DisplayName)", work
 
 -- Functions
 
+-- This is a table that stores various functions used in the script. It is used to organize and manage the functions for better readability and maintainability.
+-- The functions in this table are used for various purposes, such as creating tools, applying animations, and managing sound effects.
 local funcs = {}
+
+-- Debug is a table that stores debug settings. It is used to enable or disable certain debug features in the script.
+local debug = {
+    HitboxVisualize = owner:GetAttribute("HitboxVisualize") or false,
+}
+
+-- SoundStorage is a table that stores sound instances. It is used to manage sound effects and their properties.
+-- It is initialized as an empty table and can be used to store sound instances for later use.
+local soundStorage = {}
 
 do
     --|| First Setup
-
-    -- SoundStorage is a table that stores sound instances. It is used to manage sound effects and their properties.
-    -- It is initialized as an empty table and can be used to store sound instances for later use.
-    local soundStorage = {}
 
     -- SoundCase is a BindableEvent that allows for sound events to be fired and connected to. It can be used to play or delete sounds based on the case provided.
     -- It is connected to a function that waits for the sound to load, then plays or deletes it based on the case provided.
@@ -467,7 +478,8 @@ do
         
         hitbox.Massless = true
         hitbox.Material = Enum.Material.ForceField
-        hitbox.Transparency = 1
+        printf(debug.HitboxVisualize)
+        hitbox.Transparency = debug.HitboxVisualize and 0 or 1
         hitbox.Color = Color3.new(1, 0, 0)
         hitbox.Name = `HITBOX_{HttpService:GenerateGUID(false)}`
         if table.find(special, "ChangeName") then
@@ -512,6 +524,9 @@ do
         end
         
         local models : Model, debrises : Part = GetTouched(parts, special)
+        if models and #models > 0 then
+            hitbox.Color = Color3.new(0, 1, 0)
+        end
         
         Debris:AddItem(hitbox, 1)
         if table.find(special, "GetDebris") then
@@ -556,6 +571,8 @@ do
     end
 
     --#<
+
+    
 end
 
 --|| Start
@@ -669,11 +686,8 @@ do -- crucifix
 
     --#> Activate (Hold)
     local holding = false
+    local equippedOnce = false
     local hits = {}
-
-    tool.Equipped:Connect(function()
-        funcs:makeSound(sfx("crucifix_equip"), root)
-    end)
 
     tool.Activated:Connect(function()
         if not holding then
@@ -684,6 +698,11 @@ do -- crucifix
             funcs:newAnim(cruxAnim, character, "https://pastebin.com/raw/gBL8K0HC")
             humanoid.WalkSpeed -= 12
             humanoid.JumpPower -= 50
+            
+            if equippedOnce == false then
+                equippedOnce = true
+                funcs:makeSound(sfx("crucifix_equip"), root)
+            end
 
             task.spawn(function()
                 while holding do
@@ -732,3 +751,53 @@ do -- crucifix
         end
     end)
 end
+
+--|| >> Miscellaneous <<
+
+-- Make all parts in the character massless
+for i, v:Instance in pairs(character:GetChildren()) do
+    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+        v.Massless = true
+    end
+end
+
+-- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
+-- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
+owner.Chatted:Connect(function(msg : string)
+    msg = msg:lower()
+    if msg:sub(1, 3) == "/e " then
+        msg = msg:sub(4)
+    end
+
+    if msg:sub(1, 6) == ";debug" then
+        local args = msg:split(" ")
+        local debugArg = args[2]
+
+        if debugArg == "hitbox" then
+            local toggle = args[3]
+            if toggle == "true" or toggle == "1" or toggle == "on" then
+                toggle = true
+            elseif toggle == "false" or toggle == "0" or toggle == "off" then
+                toggle = false
+            else
+                toggle = false
+            end
+
+            debug.HitboxVisualize = toggle or not debug.HitboxVisualize
+            owner:SetAttribute("HitboxVisualize", debug.HitboxVisualize)
+            printf(`Hitbox Visualize: {debug.HitboxVisualize}`)
+        elseif debugArg == "print" then
+            local content = args[3]
+            printf(`Debug Print for testing: {content}`)
+        elseif debugArg == "d" or debugArg == "dum" or debugArg == "dummy" then
+            local char = funcs:createChar(owner.UserId)
+            char.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None   
+            char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
+            char.Parent = workspace
+
+            printf(`Dummy spawned!`)
+        else
+            printf(`No such thing as "{debugArg}"!`)
+        end
+    end
+end)
