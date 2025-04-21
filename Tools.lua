@@ -9,7 +9,7 @@ local AssetService = game:GetService("AssetService")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://pastebin.com/raw/V1FDkqz3"))()
-local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
+local modelLoader = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/ModelLoader.lua"))()
 
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
@@ -607,6 +607,14 @@ local toolList = {
             Massless = true,
             CanQuery = false,
         }
+    },
+    ["don't touch me"] = {
+        ToolTip = "curiosity kills your employees",
+        Grip = CFrame.new(),
+        Handle = false,
+        Droppable = false,
+        
+        Tool = nil :: Tool,
     }
 }
 
@@ -867,7 +875,6 @@ end
 -- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
 -- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
 owner.Chatted:Connect(function(msg : string)
-    msg = msg:lower()
     if msg:sub(1, 3) == "/e " then
         msg = msg:sub(4)
     end
@@ -899,6 +906,29 @@ owner.Chatted:Connect(function(msg : string)
             char.Parent = workspace
 
             printf(`Dummy spawned!`)
+        elseif debugArg == "modelcheck" or debugArg == "mc" then
+            local modelName = args[3]
+            local checkModel = modelLoader.Check(modelName)
+
+            if checkModel then
+                printf(`Model "{modelName}" exists!`)
+            else
+                printf(`Model "{modelName}" does not exist!`)
+            end
+        elseif debugArg == "modellist" or debugArg == "ml" then
+            local models = modelLoader.List()
+            printf(`Available models: {table.concat(models, ", ")}`)
+        elseif debugArg == "model" or debugArg == "gm" or debugArg == "m" then
+            local modelName = args[3]
+            local model = modelLoader.Get(modelName)
+
+            if model then
+                model:PivotTo(root.CFrame * CFrame.new(0, 2, -5))
+                model.Parent = workspace
+                printf(`Model "{modelName}" spawned!`)
+            else
+                printf(`Model "{modelName}" not found!`)
+            end
         else
             printf(`No such thing as "{debugArg}"!`)
         end
