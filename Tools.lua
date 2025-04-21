@@ -9,6 +9,7 @@ local AssetService = game:GetService("AssetService")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://pastebin.com/raw/V1FDkqz3"))()
+local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
@@ -28,6 +29,10 @@ local NLS = NLS
 local NewScript = NewScript
 local NewLocalScript = NewLocalScript
 local printf, warnf = printf, warnf
+-- local Utility = LoadLibrary("RbxUtility")
+
+-- local Create = Utility.Create
+-- local Signal = Utility.CreateSignal
 
 --#> Player Variables
 local character : Model = owner.Character
