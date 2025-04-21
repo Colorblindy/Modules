@@ -1,3 +1,35 @@
+--[[
+	ModelLoader.lua
+
+	This module provides functionality to load and manage predefined 3D models (assets) in Roblox.
+	It defines a set of asset constructors and exposes methods to check, list, and retrieve these models.
+
+	Assets:
+	- DTM: A complex model consisting of multiple parts, surface GUIs, image labels, and welds.
+
+	Functions:
+	- module.Check(name: string) -> boolean
+		Checks if an asset with the given name exists in the module.
+		@param name (string): The name of the asset to check.
+		@return (boolean): True if the asset exists, otherwise nil.
+
+	- module.List() -> table
+		Returns a list of all available asset names.
+		@return (table): Array of asset names (strings).
+
+	- module.Get(name: string) -> Instance | nil
+		Returns a new instance of the specified asset model.
+		@param name (string): The name of the asset to retrieve.
+		@return (Instance): The constructed model instance if found, otherwise warns and returns nil.
+
+	Usage:
+		local modelLoader = require(path.to.ModelLoader)
+		if modelLoader.Check("DTM") then
+			local dtmModel = modelLoader.Get("DTM")
+			dtmModel.Parent = workspace
+		end
+]]
+
 local modelLoader
 local assetModule
 
