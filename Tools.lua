@@ -730,7 +730,7 @@ do -- crucifix
                             game.Debris:AddItem(bodyPos, 0.1)
                             
                             fhum.Health -= newdamage
-                            if hp > 0 and fhum.Health <= 0 then 
+                            if hp > 0 and fhum.Health <= 0 and fhum:GetState(Enum.HumanoidStateType.Dead) then 
                                 funcs:makeSound(sfx("crucifix_kill"), fhum.RootPart)
                                 funcs:makeSound(sfx("crucifix_exorcised"), fhum.RootPart)
 
