@@ -8,7 +8,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
-local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://pastebin.com/raw/V1FDkqz3"))()
+local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/CreateCharacter.lua"))()
 local modelLoader = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/ModelLoader.lua"))()
 
 export type ProjectileConfiguration = {
@@ -639,187 +639,248 @@ end
 --|| >> Main Tool Functions <<
 local sfx = funcs.getPlaceholderSound
 
-do -- crucifix
-    local crucifix = toolList["crucifix"]
-    local tool = crucifix.Tool
-    local model = crucifix.Model
-    model.Parent = nil
-
-    local cruxAnim = AnimationTrack.new()
-    cruxAnim.NoDisableTransition = true
-    cruxAnim.lerpFactor = 1
-
-    --#> Sounds
-    funcs:createPlaceholderSound("rbxassetid://87336811239109", "crucifix_equip", tool)
-    funcs:createPlaceholderSound("rbxassetid://104858152402890", "crucifix_hit", tool)
-    funcs:createPlaceholderSound("rbxassetid://102564470736802", "crucifix_kill", tool)
-    funcs:createPlaceholderSound("rbxassetid://88281130604468", "crucifix_exorcised", tool)
-
-    --#> Highlight
-    local hl = Instance.new("Highlight")
-    hl.Name = "Cross"
-    hl.FillTransparency = 0.3
-    hl.OutlineTransparency = 0
-    hl.Adornee = model
-    hl.DepthMode = Enum.HighlightDepthMode.Occluded
-    hl.Parent = model
-
-    --#> Weld
-    funcs:jointParts(character["Right Arm"], model, "Weld", {CFrame.new(0, -1, -0.36499977111816406, -4.371138828673793e-08, 0, -1, -4.371138828673793e-08, -1, 1.910685465164705e-15, -1, 4.371138828673793e-08, 4.371138828673793e-08)})
-
-    --#> Texturing
-    local faceEnum, maxNumber = Enum.NormalId:GetEnumItems(), #Enum.NormalId:GetEnumItems()
-    for i = 1, maxNumber do
-        local tex = Instance.new("Texture")
-        tex.Transparency = 0.9
-        tex.Color3 = Color3.new(0, 0, 0)
-        tex.Texture = (i == 3 and "rbxassetid://102276212148593") or "rbxassetid://15702060640"
-        tex.Face = faceEnum[i]
-        tex.OffsetStudsV = 0
-        tex.StudsPerTileV = (i == 3 and 0.05) or 10
-        tex.StudsPerTileU = (i == 3 and 10) or 0.05
-        tex.Parent = model
-    end
-
-    --#> Random Crucifix
-    local rand = Random.new():NextInteger(1, 3)
-    model.Material = Enum.Material.Metal
-    if rand == 1 then
-        model.BrickColor = BrickColor.new("Gold")
-    elseif rand == 2 then
-        model.Color = Color3.fromRGB(207, 207, 207)
-        tool.ToolTip = "when faith... endures?"
-    elseif rand == 3 then
-        model.BrickColor = BrickColor.new("Burnt Sienna")
-        model.Material = Enum.Material.Wood
-        tool.ToolTip = "losing faith..."
-    end
+do -- Tool scripts
+    do -- crucifix
+        local crucifix = toolList["crucifix"]
+        local tool = crucifix.Tool
+        local model = crucifix.Model
+        model.Parent = nil
     
-    hl.FillColor, hl.OutlineColor = model.Color, model.Color
-
-    --#> Activate (Hold)
-    local holding = false
-    local equippedOnce = false
-    local hits = {}
-
-    tool.Activated:Connect(function()
-        if not holding then
-            holding = true
-            
-            model.Parent = tool
-            cruxAnim.Looped = true
-            funcs:newAnim(cruxAnim, character, "https://pastebin.com/raw/gBL8K0HC")
-            humanoid.WalkSpeed -= 12
-            humanoid.JumpPower -= 50
-            
-            if equippedOnce == false then
-                equippedOnce = true
-                funcs:makeSound(sfx("crucifix_equip"), root)
-            end
-
-            task.spawn(function()
-                while holding do
-                    table.clear(hits)
-
-                    local hitbox, models = funcs:hitbox(character, CFrame.new(0, 0, 0), Vector3.new(7, 6, 7.11), "Block")
-
-                    for i, v in models do
-                        if table.find(hits, v) then continue end
-                        table.insert(hits, v)
-
-                        local fhum = v:FindFirstChildOfClass("Humanoid")
-                        if fhum and fhum.Health > 0 then
-                            local hp = fhum.Health
-                            local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
-                            local newdamage = fhum.MaxHealth * (damage/100)
-
-                            funcs:makeSound(sfx("crucifix_hit"), fhum.RootPart, {TimePosition = 1.2})
-                            local bodyPos = Instance.new("BodyPosition")
-                            bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-                            bodyPos.Position = fhum.RootPart.Position
-                            bodyPos.D = 400
-                            bodyPos.P = 800
-                            bodyPos.Parent = fhum.RootPart
-                            game.Debris:AddItem(bodyPos, 0.1)
-                            
-                            fhum.Health -= newdamage
-                            if hp > 0 and fhum.Health <= 0 and fhum:GetState(Enum.HumanoidStateType.Dead) then 
-                                funcs:makeSound(sfx("crucifix_kill"), fhum.RootPart)
-                                funcs:makeSound(sfx("crucifix_exorcised"), fhum.RootPart)
-
-                                local deathModel = Instance.new("Model")
-                                deathModel.Name = "CrucifixDeath"
-                                local deathHum = Instance.new("Humanoid")
-                                deathHum.Name = "DeadHum"
-                                deathHum.Health = 0
-                                deathHum.MaxHealth = 0
-                                deathHum.Parent = deathModel
-
-                                for i, v:Instance in pairs(v:GetDescendants()) do
-                                    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                                        local newPart = v:Clone()
-                                        v.AssemblyLinearVelocity = Vector3.new(
-                                            math.random(-5, 5),
-                                            math.random(3, 5),
-                                            math.random(-5, 5)
-                                        )
-
-                                        newPart.Massless = true
-                                        newPart.CanCollide = false
-                                        newPart.Anchored = true
-                                        newPart.CanTouch = false
-                                        newPart.CanQuery = false
-                                        newPart.Color = Color3.new(0.596078, 0.596078, 0.596078)
-                                        newPart.Transparency = 0.75
-
-                                        for b, n:Instance in pairs(newPart:GetChildren()) do
-                                            if n:IsA("SpecialMesh") then
-                                                n.TextureId = ""
-                                            elseif n:IsA("Decal") or n:IsA("Texture") then
-                                                n.Transparency = 1
-                                            elseif n:IsA("Weld") or n:IsA("Motor6D") or n:IsA("WeldConstraint") then
-                                                n:Destroy()
-                                            elseif v:IsA("Trail") or v:IsA("ParticleEmitter") then
-                                                n.Enabled = false
+        local cruxAnim = AnimationTrack.new()
+        cruxAnim.NoDisableTransition = true
+        cruxAnim.lerpFactor = 1
+    
+        --#> Sounds
+        funcs:createPlaceholderSound("rbxassetid://87336811239109", "crucifix_equip", tool)
+        funcs:createPlaceholderSound("rbxassetid://104858152402890", "crucifix_hit", tool)
+        funcs:createPlaceholderSound("rbxassetid://102564470736802", "crucifix_kill", tool)
+        funcs:createPlaceholderSound("rbxassetid://88281130604468", "crucifix_exorcised", tool)
+    
+        --#> Highlight
+        local hl = Instance.new("Highlight")
+        hl.Name = "Cross"
+        hl.FillTransparency = 0.3
+        hl.OutlineTransparency = 0
+        hl.Adornee = model
+        hl.DepthMode = Enum.HighlightDepthMode.Occluded
+        hl.Parent = model
+    
+        --#> Weld
+        funcs:jointParts(character["Right Arm"], model, "Weld", {CFrame.new(0, -1, -0.36499977111816406, -4.371138828673793e-08, 0, -1, -4.371138828673793e-08, -1, 1.910685465164705e-15, -1, 4.371138828673793e-08, 4.371138828673793e-08)})
+    
+        --#> Texturing
+        local faceEnum, maxNumber = Enum.NormalId:GetEnumItems(), #Enum.NormalId:GetEnumItems()
+        for i = 1, maxNumber do
+            local tex = Instance.new("Texture")
+            tex.Transparency = 0.9
+            tex.Color3 = Color3.new(0, 0, 0)
+            tex.Texture = (i == 3 and "rbxassetid://102276212148593") or "rbxassetid://15702060640"
+            tex.Face = faceEnum[i]
+            tex.OffsetStudsV = 0
+            tex.StudsPerTileV = (i == 3 and 0.05) or 10
+            tex.StudsPerTileU = (i == 3 and 10) or 0.05
+            tex.Parent = model
+        end
+    
+        --#> Random Crucifix
+        local rand = Random.new():NextInteger(1, 3)
+        model.Material = Enum.Material.Metal
+        if rand == 1 then
+            model.BrickColor = BrickColor.new("Gold")
+        elseif rand == 2 then
+            model.Color = Color3.fromRGB(207, 207, 207)
+            tool.ToolTip = "when faith... endures?"
+        elseif rand == 3 then
+            model.BrickColor = BrickColor.new("Burnt Sienna")
+            model.Material = Enum.Material.Wood
+            tool.ToolTip = "losing faith..."
+        end
+        
+        hl.FillColor, hl.OutlineColor = model.Color, model.Color
+    
+        --#> Activate (Hold)
+        local holding = false
+        local equippedOnce = false
+        local hits = {}
+    
+        tool.Activated:Connect(function()
+            if not holding then
+                holding = true
+                
+                model.Parent = tool
+                cruxAnim.Looped = true
+                funcs:newAnim(cruxAnim, character, "https://pastebin.com/raw/gBL8K0HC")
+                humanoid.WalkSpeed -= 12
+                humanoid.JumpPower -= 50
+                
+                if equippedOnce == false then
+                    equippedOnce = true
+                    funcs:makeSound(sfx("crucifix_equip"), root)
+                end
+    
+                task.spawn(function()
+                    while holding do
+                        table.clear(hits)
+    
+                        local hitbox, models = funcs:hitbox(character, CFrame.new(0, 0, 0), Vector3.new(7, 6, 7.11), "Block")
+    
+                        for i, v in models do
+                            if table.find(hits, v) then continue end
+                            table.insert(hits, v)
+    
+                            local fhum = v:FindFirstChildOfClass("Humanoid")
+                            if fhum and fhum.Health > 0 then
+                                local hp = fhum.Health
+                                local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
+                                local newdamage = fhum.MaxHealth * (damage/100)
+    
+                                funcs:makeSound(sfx("crucifix_hit"), fhum.RootPart, {TimePosition = 1.2})
+                                local bodyPos = Instance.new("BodyPosition")
+                                bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+                                bodyPos.Position = fhum.RootPart.Position
+                                bodyPos.D = 400
+                                bodyPos.P = 800
+                                bodyPos.Parent = fhum.RootPart
+                                game.Debris:AddItem(bodyPos, 0.1)
+                                
+                                fhum.Health -= newdamage
+                                if hp > 0 and fhum.Health <= 0 and fhum:GetState(Enum.HumanoidStateType.Dead) then 
+                                    funcs:makeSound(sfx("crucifix_kill"), fhum.RootPart)
+                                    funcs:makeSound(sfx("crucifix_exorcised"), fhum.RootPart)
+    
+                                    local deathModel = Instance.new("Model")
+                                    deathModel.Name = "CrucifixDeath"
+                                    local deathHum = Instance.new("Humanoid")
+                                    deathHum.Name = "DeadHum"
+                                    deathHum.Health = 0
+                                    deathHum.MaxHealth = 0
+                                    deathHum.Parent = deathModel
+    
+                                    for i, v:Instance in pairs(v:GetDescendants()) do
+                                        if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                                            local newPart = v:Clone()
+                                            v.AssemblyLinearVelocity = Vector3.new(
+                                                math.random(-5, 5),
+                                                math.random(3, 5),
+                                                math.random(-5, 5)
+                                            )
+    
+                                            newPart.Massless = true
+                                            newPart.CanCollide = false
+                                            newPart.Anchored = true
+                                            newPart.CanTouch = false
+                                            newPart.CanQuery = false
+                                            newPart.Color = Color3.new(0.596078, 0.596078, 0.596078)
+                                            newPart.Transparency = 0.75
+    
+                                            for b, n:Instance in pairs(newPart:GetChildren()) do
+                                                if n:IsA("SpecialMesh") then
+                                                    n.TextureId = ""
+                                                elseif n:IsA("Decal") or n:IsA("Texture") then
+                                                    n.Transparency = 1
+                                                elseif n:IsA("Weld") or n:IsA("Motor6D") or n:IsA("WeldConstraint") then
+                                                    n:Destroy()
+                                                elseif v:IsA("Trail") or v:IsA("ParticleEmitter") then
+                                                    n.Enabled = false
+                                                end
                                             end
+    
+                                            funcs:tween(newPart, 5, {Position = newPart.Position + Vector3.new(0, 25, 0)}, "Linear")
+    
+                                            newPart.Parent = deathModel
+                                            deathModel.Parent = workspace
+                                            Debris:AddItem(deathModel, 5)
                                         end
-
-                                        funcs:tween(newPart, 5, {Position = newPart.Position + Vector3.new(0, 25, 0)}, "Linear")
-
-                                        newPart.Parent = deathModel
-                                        deathModel.Parent = workspace
-                                        Debris:AddItem(deathModel, 5)
                                     end
                                 end
                             end
                         end
+    
+                        task.wait(0.1)
+                    end
+                end)
+    
+                repeat task.wait() until holding == false
+                cruxAnim.Looped = false
+                humanoid.WalkSpeed += 12
+                humanoid.JumpPower += 50
+    
+                model.Parent = nil
+                cruxAnim:Stop()
+            end
+        end)
+    
+        tool.Deactivated:Connect(function()
+            if holding then
+                holding = false
+            end
+        end)
+    
+        tool.Unequipped:Connect(function()
+            if holding then
+                holding = false
+            end
+        end)
+    end
+
+    do -- don't touch me
+        local dontTouchMe = toolList["don't touch me"]
+        local tool = dontTouchMe.Tool
+        local model:Model = modelLoader.Get("DTM")
+
+        tool:SetAttribute("Spawned", false)
+
+        NLS([[
+            local RunService = game:GetService("RunService")
+            local modelSize, humanoid = ...
+
+            local tool = script.Parent
+            local root = humanoid.RootPart
+
+            local offset = root.CFrame * CFrame.new(0, 0, -5)
+            local updatePos = nil
+            local visual = nil
+
+            tool.Equipped:Connect(function()
+                if tool:GetAttribute("Spanwed") then return end
+
+                visual = Instance.new("Part")
+                visual.Size = modelSize
+                visual.Material = Enum.Material.Neon
+                visual.Transparency = 0.85
+                visual.CFrame = offset
+                visual.CanCollide = false
+                visual.CanQuery = false
+                visual.CanTouch = false
+                visual.Anchored = true
+                visual.Archivable = false
+                visual.Color = Color3.fromRGB(0, 255, 0)
+                visual.Parent = workspace
+
+                updatePos = RunService.RenderStepped:Connect(function()
+                    if not tool:IsDescendantOf(workspace) or humanoid:GetState() == Enum.HumanoidStateType.Dead or tool:GetAttribute("Spawned") then
+                        updatePos:Disconnect()
+                        visual:Destroy(); visual = nil
+                        return
                     end
 
-                    task.wait(0.1)
-                end
+                    offset = root.CFrame * CFrame.new(0, 0, -5)
+                    visual.CFrame = offset
+                end)
             end)
+        ]], tool, model:GetExtentsSize(), humanoid)
+    
+        tool.Activated:Connect(function()
+            if tool:GetAttribute("Spawned") then return end
+            tool:SetAttribute("Spawned", true)
 
-            repeat task.wait() until holding == false
-            cruxAnim.Looped = false
-            humanoid.WalkSpeed += 12
-            humanoid.JumpPower += 50
-
-            model.Parent = nil
-            cruxAnim:Stop()
-        end
-    end)
-
-    tool.Deactivated:Connect(function()
-        if holding then
-            holding = false
-        end
-    end)
-
-    tool.Unequipped:Connect(function()
-        if holding then
-            holding = false
-        end
-    end)
+            model:PivotTo(root.CFrame * CFrame.new(0, 0, -5))
+            model.Parent = workspace
+            
+            task.wait(0.1)
+            tool:Destroy()
+        end)
+    end
 end
 
 --|| >> Miscellaneous <<
@@ -926,8 +987,6 @@ owner.Chatted:Connect(function(msg : string)
                 model:PivotTo(root.CFrame * CFrame.new(0, 2, -5))
                 model.Parent = workspace
                 printf(`Model "{modelName}" spawned!`)
-            else
-                printf(`Model "{modelName}" not found!`)
             end
         else
             printf(`No such thing as "{debugArg}"!`)
