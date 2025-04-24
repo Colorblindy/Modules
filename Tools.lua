@@ -830,6 +830,11 @@ do -- Tool scripts
 
         tool:SetAttribute("Spawned", false)
 
+        --#> Sounds
+        funcs:createPlaceholderSound("rbxassetid://18755588842", "placement_dtm", tool)
+        funcs:createPlaceholderSound("rbxassetid://7496207231", "placement_dtm2", tool)
+
+        --#> Local Script
         NLS([[
             local RunService = game:GetService("RunService")
             local modelSize, humanoid = ...
@@ -874,9 +879,16 @@ do -- Tool scripts
             if tool:GetAttribute("Spawned") then return end
             tool:SetAttribute("Spawned", true)
 
-            model:PivotTo(root.CFrame * CFrame.new(0, 0, -5))
+            local cDetect = Instance.new("ClickDetector")
+            cDetect.MaxActivationDistance = 10
+            cDetect.Parent = model.Button
+
+            model:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
+
             model.Parent = workspace
-            
+            funcs:makeSound(sfx("placement_dtm"), model.PrimaryPart)
+            funcs:makeSound(sfx("placement_dtm2"), model.PrimaryPart)
+
             task.wait(0.1)
             tool:Destroy()
         end)
