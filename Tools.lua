@@ -43,7 +43,7 @@ local root : BasePart = character:FindFirstChild("HumanoidRootPart")
 local humanoid = character:FindFirstChildOfClass("Humanoid")
 humanoid.UseJumpPower = true
 
--- COPILOT HINT:
+-- AI HINT:
 -- This is Luau, a programming language used in Roblox.
 -- "owner" is a variable in a certain sandbox game scripting, this should be ignored as its actually our Player instance
 
@@ -882,6 +882,10 @@ do -- Tool scripts
             local cDetect = Instance.new("ClickDetector")
             cDetect.MaxActivationDistance = 10
             cDetect.Parent = model.Button
+            cDetect.MouseClick:Connect(function()
+                cDetect:Destroy()
+                funcs:tween(model.Box.Button, 0.5, {C0 = model.Box.Button.C0 * CFrame.new(-0.5, 0, 0)})
+            end)
 
             model:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
 
