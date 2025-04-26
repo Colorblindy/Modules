@@ -889,8 +889,7 @@ do -- Tool scripts
         funcs:createPlaceholderSound("rbxassetid://96056089665427", "dtm_activate", tool)
         funcs:createPlaceholderSound("rbxassetid://12221967", "dtm_button", tool)
         funcs:createPlaceholderSound("rbxassetid://597291504", "dtm_explode", tool)
-
-        print(model:GetExtentsSize())
+        
         --#> Local Script
         NLS([[
             local RunService = game:GetService("RunService")
@@ -898,7 +897,7 @@ do -- Tool scripts
 
             local tool = script.Parent
             if modelSize == nil or humanoid == nil then 
-                modelSize = Vector3.new(5, 5.8, 5)
+                modelSize = Vector3.new(5, 5, 5)
                 humanoid = owner.Character.Humanoid
             end
 
@@ -995,7 +994,7 @@ do -- Tool scripts
                         local fhum = v:FindFirstChildOfClass("Humanoid")
                         local fplr = Players:GetPlayerFromCharacter(v)
 
-                        if fhum and fhum.Health > 0 then
+                        if fhum then
                             local hp = fhum.Health
                             local damage = fhum.Health + 100
                             local newdamage = fhum.MaxHealth * (damage/100)
@@ -1126,6 +1125,7 @@ owner.Chatted:Connect(function(msg : string)
                 task.spawn(function()
                     local char = createChar(owner.UserId)
                     local hum:Humanoid = char:WaitForChild("Humanoid")
+                    hum.DisplayName = owner.DisplayName .. if i == 1 then "" else " #".. i
                     hum.NameDisplayDistance = Enum.HumanoidDisplayDistanceType.None   
                     hum.HealthDisplayDistance = Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
                     char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
