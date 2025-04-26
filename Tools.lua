@@ -880,12 +880,18 @@ do -- Tool scripts
         funcs:createPlaceholderSound("rbxassetid://12221967", "dtm_button", tool)
         funcs:createPlaceholderSound("rbxassetid://597291504", "dtm_explode", tool)
 
+        print(model:GetExtentsSize())
         --#> Local Script
         NLS([[
             local RunService = game:GetService("RunService")
             local modelSize, humanoid = ...
 
             local tool = script.Parent
+            if modelSize == nil or humanoid == nil then 
+                modelSize = Vector3.new(5, 5.8, 5)
+                humanoid = owner.Character.Humanoid
+            end
+
             local root = humanoid.RootPart
 
             local offset = root.CFrame * CFrame.new(0, 0, -5)
