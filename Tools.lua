@@ -1,5 +1,6 @@
 local Debris = game:GetService("Debris")
 local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -10,6 +11,7 @@ local AssetService = game:GetService("AssetService")
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/CreateCharacter.lua"))()
 local modelLoader = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/ModelLoader.lua"))()
+local SoundService = game:GetService("SoundService")
 
 export type ProjectileConfiguration = {
 	Speed: NumberValue,
@@ -469,9 +471,22 @@ do
         end
         
         --# get player + root + humanoid
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        local root:Part = character:FindFirstChild("HumanoidRootPart")
-        local player = Players:GetPlayerFromCharacter(character)
+        local humanoid = character:FindFirstChildOfClass("Humanoid") 
+        local root:Part = nil
+        local player = nil
+        if character:IsA("Model") and humanoid then
+            root = character:FindFirstChild("HumanoidRootPart")
+            if not root then
+                root = character:FindFirstChild("Torso")
+            end
+            player = Players:GetPlayerFromCharacter(character)
+        else
+            root = character.PrimaryPart
+            if not root then
+                root = character
+            end
+        end
+       
         if not player then
             player = character
         end
@@ -497,7 +512,7 @@ do
         hitbox.Size = size
         
         local pos = nil
-        if table.find(special, "InPlace") then
+        if table.find(special, "InPlace") or not humanoid then
             pos = root.CFrame * offset
         else
             pos = (root.CFrame * CFrame.new(0, 0, -size.Z/2)) * offset
@@ -582,6 +597,13 @@ end
 
 --|| Start
 
+--[[
+Index
+1 = Melee
+2 = Ranged
+3 = Misc
+]]
+
 --# tool list
 local toolList = {
     ["crucifix"] = {
@@ -589,6 +611,7 @@ local toolList = {
         Grip = CFrame.new(),
         Handle = false,
         Droppable = false,
+        Order = 1,
         
         Tool = nil :: Tool,
         Model = nil :: BasePart,
@@ -610,31 +633,51 @@ local toolList = {
     },
     ["don't touch me"] = {
         ToolTip = "curiosity kills your employees",
-        Grip = CFrame.new(),
-        Handle = false,
         Droppable = false,
+        Order = 3,
+        Handle = false,
         
         Tool = nil :: Tool,
-    }
+    },
 }
 
+--# Sorting
+
+local melee, ranged, misc = {}, {}, {}
 for i, v in pairs(toolList) do
-    local model = nil
-    if v.ModelInfo then
-        if v.ModelInfo.Type == "MeshPart" then
-            model = funcs:createMesh(v.ModelInfo.Mesh, v.ModelInfo.Texture, v.ModelInfo.Size, nil)
-            for i2, v2 in pairs(v.ModelInfo) do
-                pcall(function()
-                    model[i2] = v2
-                end)
+    if v.Order == 1 then
+        melee[i] = v
+    elseif v.Order == 2 then
+        ranged[i] = v
+    elseif v.Order == 3 then
+        misc[i] = v
+    end
+end
+
+--# Create
+function CreateTool(fromTable : table)
+    for i, v in fromTable do
+        local model = nil
+        if v.ModelInfo then
+            if v.ModelInfo.Type == "MeshPart" then
+                model = funcs:createMesh(v.ModelInfo.Mesh, v.ModelInfo.Texture, v.ModelInfo.Size, nil)
+                for i2, v2 in pairs(v.ModelInfo) do
+                    pcall(function()
+                        model[i2] = v2
+                    end)
+                end
             end
         end
+        
+        local tool = funcs:createTool(model, i, v.ToolTip, v.Grip or CFrame.new(), v.Handle, v.Droppable)
+        v.Tool = tool
+        v.Model = model
     end
-    
-    local tool = funcs:createTool(model, i, v.ToolTip, v.Grip, v.Handle, v.Droppable)
-    v.Tool = tool
-    v.Model = model
 end
+
+CreateTool(melee)
+CreateTool(ranged)
+CreateTool(misc)
 
 --|| >> Main Tool Functions <<
 local sfx = funcs.getPlaceholderSound
@@ -833,6 +876,9 @@ do -- Tool scripts
         --#> Sounds
         funcs:createPlaceholderSound("rbxassetid://18755588842", "placement_dtm", tool)
         funcs:createPlaceholderSound("rbxassetid://7496207231", "placement_dtm2", tool)
+        funcs:createPlaceholderSound("rbxassetid://96056089665427", "dtm_activate", tool)
+        funcs:createPlaceholderSound("rbxassetid://12221967", "dtm_button", tool)
+        funcs:createPlaceholderSound("rbxassetid://597291504", "dtm_explode", tool)
 
         --#> Local Script
         NLS([[
@@ -885,6 +931,89 @@ do -- Tool scripts
             cDetect.MouseClick:Connect(function()
                 cDetect:Destroy()
                 funcs:tween(model.Box.Button, 0.5, {C0 = model.Box.Button.C0 * CFrame.new(-0.5, 0, 0)})
+                funcs:makeSound(sfx("dtm_button"), model.PrimaryPart)
+
+                task.wait(1)
+                funcs:makeSound(sfx("dtm_activate"), model.PrimaryPart)
+                do -- Activate particle
+                    local BombParticle = Instance.new("Attachment")
+                    BombParticle.Name = "BombParticle"
+                    BombParticle.Parent = model.Box
+
+                    local Lines = Instance.new("ParticleEmitter")
+                    Lines.Name = "Lines"
+                    Lines.Lifetime = NumberRange.new(1, 1)
+                    Lines.SpreadAngle = Vector2.new(300, 300)
+                    Lines.Transparency = NumberSequence.new(0, 1)
+                    Lines.LightEmission = 1
+                    Lines.VelocitySpread = 300
+                    Lines.Speed = NumberRange.new(10, 20)
+                    Lines.Brightness = 3
+                    Lines.Size = NumberSequence.new(1.5)
+                    Lines.Rate = 60
+                    Lines.Texture = "rbxassetid://7216979305"
+                    Lines.Orientation = Enum.ParticleOrientation.VelocityParallel
+                    Lines.Parent = BombParticle
+
+                    local Circle = Instance.new("ParticleEmitter")
+                    Circle.Name = "Circle"
+                    Circle.Lifetime = NumberRange.new(1, 1)
+                    Circle.Transparency = NumberSequence.new(0, 1)
+                    Circle.LightEmission = 1
+                    Circle.Speed = NumberRange.new(0.001, 0.001)
+                    Circle.Brightness = 3
+                    Circle.Size = NumberSequence.new(1.5, 20)
+                    Circle.ZOffset = 2
+                    Circle.Rate = 2
+                    Circle.Texture = "rbxassetid://7216856402"
+                    Circle.Parent = BombParticle 
+                end
+            
+                task.delay(2, function()
+                    funcs:makeSound(sfx("dtm_explode"), SoundService, {Pitch = 0.7})
+
+                    -- Hitbox
+                    local hitbox, models = funcs:hitbox(model, CFrame.new(), Vector3.new(2048, 2048, 2048), "Ball")
+
+                    for i, v in pairs(models) do
+                        local fhum = v:FindFirstChildOfClass("Humanoid")
+                        local fplr = Players:GetPlayerFromCharacter(v)
+
+                        if fhum and fhum.Health > 0 then
+                            local hp = fhum.Health
+                            local damage = fhum.Health + 100
+                            local newdamage = fhum.MaxHealth * (damage/100)
+
+                            --# break all joints and attachments
+                            for _, parts in pairs(v:GetDescendants()) do
+                                if parts:IsA("JointInstance") or parts:IsA("Attachment") then
+                                    parts:Destroy()
+                                elseif parts:IsA("BasePart") and parts.Name ~= "HumanoidRootPart" then
+                                    funcs:pushItem(parts, (parts.Position - model.Box.Position).Unit * 300, Vector3.one * 1e7, 1, 0.5)
+
+                                    local bodyAng = Instance.new("BodyAngularVelocity")
+                                    bodyAng.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                                    bodyAng.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                                    bodyAng.Parent = parts
+
+                                    Debris:AddItem(bodyAng, 2)
+                                end
+                            end
+
+                            --# flash
+                            local cc = Instance.new("ColorCorrectionEffect")
+                            cc.Contrast = 0
+                            cc.Saturation = 0
+                            cc.Brightness = 1
+                            cc.Parent = Lighting
+                            funcs:tween(cc, 3, {Contrast = 0, Saturation = 0, Brightness = 0}, "Quad")
+                            Debris:AddItem(cc, 3.5)
+
+                            fhum.Health -= newdamage
+                        end
+                    end
+                    model:Destroy()
+                end)
             end)
 
             model:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
@@ -977,10 +1106,18 @@ owner.Chatted:Connect(function(msg : string)
             local content = args[3]
             printf(`Debug Print for testing: {content}`)
         elseif debugArg == "d" or debugArg == "dum" or debugArg == "dummy" then
-            local char = createChar(owner.UserId)
-            char.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None   
-            char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
-            char.Parent = workspace
+            local amount = tonumber(args[3]) or 1
+            
+            for i = 1, amount do
+                task.spawn(function()
+                    local char = createChar(owner.UserId)
+                    local hum:Humanoid = char:WaitForChild("Humanoid")
+                    hum.NameDisplayDistance = Enum.HumanoidDisplayDistanceType.None   
+                    hum.HealthDisplayDistance = Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
+                    char:PivotTo(root.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(180), 0))
+                    char.Parent = workspace
+                end)
+            end
 
             printf(`Dummy spawned!`)
         elseif debugArg == "modelcheck" or debugArg == "mc" then
@@ -1009,3 +1146,4 @@ owner.Chatted:Connect(function(msg : string)
         end
     end
 end)
+
