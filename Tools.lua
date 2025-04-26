@@ -173,11 +173,20 @@ do
                     local humanoid = character:FindFirstChildOfClass("Humanoid")
                     if humanoid then
                         local ragdollDuration = isNumber and ragdoll or 1
+                        local ragdollDurVal = Instance.new("NumberValue")
+                        ragdollDurVal.Name = "RagdollDuration"
+                        ragdollDurVal.Value = ragdollDuration
+                        ragdollDurVal.Parent = character
                         
                         NS([[
                             local target, dur = ...
+                            if target == nil or dur == nil then
+                                target = script.Parent
+                                dur = target.RagdollDuration.Value
+                            end
+
                             local humanoid = target:WaitForChild("Humanoid")
-                            local root = humanoid and (humanoid.RootPart or target:WaitForChild("HumanoidRootPart"))
+                            local root = (humanoid and humanoid.RootPart) or target:WaitForChild("HumanoidRootPart")
 
                             if humanoid and humanoid.Health > 0 then
                                 humanoid.PlatformStand = true
@@ -191,9 +200,10 @@ do
                                     humanoid.PlatformStand = true
                                 end
 
+                                target.RagdollDuration:Destroy()
                                 humanoid.PlatformStand = false
                             end
-                        ]], nil, character, ragdollDuration)
+                        ]], character, character, ragdollDuration)
                     end
                 end
             end            
