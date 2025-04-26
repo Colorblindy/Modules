@@ -1002,12 +1002,10 @@ do -- Tool scripts
 
                             --# flash
                             local cc = Instance.new("ColorCorrectionEffect")
-                            cc.Contrast = 0
-                            cc.Saturation = 0
                             cc.Brightness = 1
                             cc.Parent = Lighting
-                            funcs:tween(cc, 3, {Contrast = 0, Saturation = 0, Brightness = 0}, "Quad")
-                            Debris:AddItem(cc, 3.5)
+                            funcs:tween(cc, 4, {Brightness = 0}, "Quad")
+                            Debris:AddItem(cc, 4.5)
 
                             fhum.Health -= newdamage
                         end
