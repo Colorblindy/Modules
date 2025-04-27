@@ -589,6 +589,8 @@ do
         sound.Parent = parent
 
         table.insert(soundStorage, sound)
+
+        return sound
     end
     
     function funcs.getPlaceholderSound(name : string)
@@ -643,9 +645,17 @@ local toolList = {
     },
     ["don't touch me"] = {
         ToolTip = "curiosity kills your employees",
+        Handle = false,
         Droppable = false,
         Order = 3,
+        
+        Tool = nil :: Tool,
+    },
+    ["scissors"] = {
+        ToolTip = "chaos reigns",
         Handle = false,
+        Droppable = false,
+        Order = 1,
         
         Tool = nil :: Tool,
     },
@@ -679,7 +689,7 @@ function CreateTool(fromTable : table)
             end
         end
         
-        local tool = funcs:createTool(model, i, v.ToolTip, v.Grip or CFrame.new(), v.Handle, v.Droppable)
+        local tool = funcs:createTool(model, i, v.ToolTip or "", v.Grip or CFrame.new(), v.Handle or false, v.Droppable or false)
         v.Tool = tool
         v.Model = model
     end
@@ -783,14 +793,20 @@ do -- Tool scripts
     
                             local fhum = v:FindFirstChildOfClass("Humanoid")
                             if fhum and fhum.Health > 0 then
+                                local hroot = fhum.RootPart
+
                                 local hp = fhum.Health
                                 local damage = (rand == 3 and 3) or (rand == 2 and 5) or 8;
                                 local newdamage = fhum.MaxHealth * (damage/100)
+
+                                if not hroot then
+                                    hroot = v.PrimaryPart
+                                end
     
                                 funcs:makeSound(sfx("crucifix_hit"), fhum.RootPart, {TimePosition = 1.2})
                                 local bodyPos = Instance.new("BodyPosition")
                                 bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-                                bodyPos.Position = fhum.RootPart.Position
+                                bodyPos.Position = hroot.Position
                                 bodyPos.D = 400
                                 bodyPos.P = 800
                                 bodyPos.Parent = fhum.RootPart
@@ -943,7 +959,29 @@ do -- Tool scripts
             local cDetect = Instance.new("ClickDetector")
             cDetect.MaxActivationDistance = 10
             cDetect.Parent = model.Button
-            cDetect.MouseClick:Connect(function()
+            cDetect.MouseClick:Connect(function(plr)
+                if plr ~= owner then
+                    local hint = Instance.new("Hint")
+                    hint.Parent = plr.PlayerGui
+                    hint.Text = `Only {owner.DisplayName}{if owner.UserId == 1216358979 then " (Monic)" else ""} can press this`
+                    Debris:AddItem(hint, 3)
+
+                    local hl1, hl2 = Instance.new("Highlight")
+                    hl1.Adornee = model
+                    hl1.DepthMode = Enum.HighlightDepthMode.Occluded
+                    hl1.OutlineTransparency = 0
+                    hl1.FillTransparency = 0
+                    hl1.OutlineColor = Color3.new(1, 1, 1)
+                    hl1.FillColor = Color3.new(1, 0, 0)
+                    hl1.Parent = model
+                    funcs:tween(hl1, 0.75, {OutlineTransparency = 1, FillTransparency = 1})
+                    Debris:AddItem(hl1, 0.8)
+
+                    funcs:makeSound(funcs:createPlaceholderSound("131708837601656", "error_input", model.Box), model.Box)
+
+                    return
+                end
+
                 cDetect:Destroy()
                 funcs:tween(model.Box.Button, 0.5, {C0 = model.Box.Button.C0 * CFrame.new(-0.5, 0, 0)})
                 funcs:makeSound(sfx("dtm_button"), model.PrimaryPart)
