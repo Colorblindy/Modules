@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
+local Chat = game:GetService("Chat")
 
 local AnimationTrack = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 local createChar = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Colorblindy/Modules/refs/heads/main/CreateCharacter.lua"))()
@@ -1116,6 +1117,9 @@ do -- Tool scripts
         local theme = funcs:makeSound(funcs:createPlaceholderSound("87440505349685", "scissors_theme", model), model, {Looped = true, PlaybackRegionsEnabled = true, LoopRegion = NumberRange.new(0.957, 9.359)}, true)
         theme:Stop()
 
+        funcs:createPlaceholderSound("126619480076397", "thrall_1", model)
+        funcs:createPlaceholderSound("84356072977744", "thrall_2", model)
+
         --#> Model Effects
         local hl = Instance.new("Highlight")
         hl.Name = "Scissors"
@@ -1170,8 +1174,18 @@ do -- Tool scripts
 
         tool.Equipped:Connect(function()
             local oldET = equipt
+            if equipt % 2 == 1 then
+                if math.random(1, 2) == 1 then
+                    funcs:makeSound(sfx("thrall_2"), root).Volume = 2
+                    Chat:Chat(character, "I know not what I do!") 
+                else
+                    funcs:makeSound(sfx("thrall_1"), root).Volume = 2
+                    Chat:Chat(character, "We are many!") 
+                end
+            end
 
             theme:Play()
+            humanoid.WalkSpeed += 5
 
             sciAnim.Looped = false
             sciAnim:Stop()
@@ -1197,6 +1211,7 @@ do -- Tool scripts
         tool.Unequipped:Connect(function()
             equipt += 1
             model.Transparency = 1
+            humanoid.WalkSpeed -= 5
 
             theme:Stop()
             sciAnim:Stop()
