@@ -119,11 +119,15 @@ do
     end
 
     -- Creates a new animation track with AnimationTrack module and sets its properties
-    function funcs:newAnim(animTrack, target : Model, link : string, speed : number)
+    function funcs:newAnim(animTrack, target : Model, link : string, speed : number, weight : number)
         if animTrack then
             animTrack:setAnimation(link)
             animTrack:setRig(target or character)
             animTrack:Play(speed or 1)
+        end
+
+        if weight and typeof(weight) == "number" then
+            animTrack:AdjustWeight(weight)
         end
     end
 
@@ -653,11 +657,31 @@ local toolList = {
     },
     ["scissors"] = {
         ToolTip = "chaos reigns",
+        Grip = CFrame.new(0.0500000007, 0, 0, -0.00173868297, -0.087155886, 0.996193111, -0.99999845, -4.37113208e-08, -0.00174532842, 0.000152159191, -0.996194661, -0.0871557519),
         Handle = false,
         Droppable = false,
         Order = 1,
         
         Tool = nil :: Tool,
+        Model = nil :: BasePart,
+
+        ModelInfo = {
+            Type = "MeshPart",
+            Mesh = "rbxassetid://9204035460",
+            Size = Vector3.new(0.717, 0.099, 1.923),
+            Texture = nil,
+
+            -- # mesh properties
+            Name = "Handle",
+            CanCollide = false,
+            CanTouch = false,
+            Anchored = false,
+            Massless = true,
+            CanQuery = false,
+            Material = Enum.Material.Metal,
+            BrickColor = BrickColor.new("Institutional white"),
+            Reflectance = 0.45
+        }
     },
 }
 
@@ -1075,6 +1099,107 @@ do -- Tool scripts
 
             task.wait(0.1)
             tool:Destroy()
+        end)
+    end
+
+    do -- scissors
+        local scissors = toolList["scissors"]
+        local tool = scissors.Tool
+        local model = scissors.Model
+
+        --#> Animator
+        local sciAnim = AnimationTrack.new()
+        sciAnim.NoDisableTransition = true
+        sciAnim.lerpFactor = 1
+
+        --#> Create placeholder sound
+        local theme = funcs:makeSound(funcs:createPlaceholderSound("87440505349685", "scissors_theme", model), model, {Looped = true, PlaybackRegionsEnabled = true, LoopRegion = NumberRange.new(0.957, 9.359)}, true)
+        theme:Stop()
+
+        --#> Model Effects
+        local hl = Instance.new("Highlight")
+        hl.Name = "Scissors"
+        hl.FillTransparency = 0.3
+        hl.OutlineTransparency = 0
+        hl.Adornee = model
+        hl.DepthMode = Enum.HighlightDepthMode.Occluded
+        hl.FillColor = Color3.fromRGB(255, 0, 0)
+        hl.OutlineColor = Color3.fromRGB(160, 0, 0)
+        hl.Parent = model
+
+        local trail
+        do -- Trail
+            local Trail = Instance.new("Trail")
+            Trail.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0))
+            Trail.WidthScale = NumberSequence.new(1, 0)
+            Trail.Enabled = false
+            Trail.Lifetime = 0.3
+            Trail.Brightness = 10
+            Trail.Parent = model
+
+            local Attachment = Instance.new("Attachment")
+            Attachment.WorldSecondaryAxis = Vector3.new(0, -0.0017453284235671163, 0.9999984502792358)
+            Attachment.WorldOrientation = Vector3.new(5.000000476837158, 90.00875091552734, 90.10037231445312)
+            Attachment.CFrame = CFrame.new(0, 0, 0.9615432024002075)
+            Attachment.WorldPosition = Vector3.new(23.16354751586914, 1.8663862943649292, -7.250256061553955)
+            Attachment.WorldCFrame = CFrame.new(23.16354751586914, 1.8663862943649292, -7.250256061553955, 0.08715588599443436, 0, 0.9961946606636047, 0.9961931109428406, -0.0017453284235671163, -0.08715575188398361, 0.0017386868130415678, 0.9999984502792358, -0.00015211565187200904)
+            Attachment.Position = Vector3.new(0, 0, 0.9615432024002075)
+            Attachment.WorldAxis = Vector3.new(0.08715588599443436, 0.9961931109428406, 0.0017386868130415678)
+            Attachment.Parent = model
+
+            local Attachment1 = Instance.new("Attachment")
+            Attachment1.WorldSecondaryAxis = Vector3.new(0, -0.0017453284235671163, 0.9999984502792358)
+            Attachment1.WorldOrientation = Vector3.new(5.000000476837158, 90.00875091552734, 90.10037231445312)
+            Attachment1.CFrame = CFrame.new(0, 0, -0.3586377203464508)
+            Attachment1.WorldPosition = Vector3.new(21.848390579223633, 1.981447696685791, -7.250055313110352)
+            Attachment1.WorldCFrame = CFrame.new(21.848390579223633, 1.981447696685791, -7.250055313110352, 0.08715588599443436, 0, 0.9961946606636047, 0.9961931109428406, -0.0017453284235671163, -0.08715575188398361, 0.0017386868130415678, 0.9999984502792358, -0.00015211565187200904)
+            Attachment1.Position = Vector3.new(0, 0, -0.3586377203464508)
+            Attachment1.WorldAxis = Vector3.new(0.08715588599443436, 0.9961931109428406, 0.0017386868130415678)
+            Attachment1.Parent = model
+
+            Trail.Attachment0 = Attachment
+            Trail.Attachment1 = Attachment1
+            trail = Trail
+        end
+    
+        --#> Tool functions
+        local equipt = 1
+
+        --# Model transparency
+        model.Transparency = 1
+
+        tool.Equipped:Connect(function()
+            local oldET = equipt
+
+            theme:Play()
+
+            sciAnim.Looped = false
+            sciAnim:Stop()
+
+            funcs:newAnim(sciAnim, character, "https://pastebin.com/raw/H51XK3kM", 1.15, 2)
+            --# Equip event
+            task.delay(0.4, function()
+                if tool.Parent == character and oldET == equipt then
+                    model.Transparency = 0
+                    trail.Enabled = true
+                end
+            end)
+
+            sciAnim.Stopped:Wait()
+            trail.Enabled = false
+
+            if tool.Parent == character then
+                funcs:newAnim(sciAnim, character, "https://pastebin.com/raw/qdJ67EnW", nil, 1)
+                sciAnim.Looped = true
+            end
+        end)
+
+        tool.Unequipped:Connect(function()
+            equipt += 1
+            model.Transparency = 1
+
+            theme:Stop()
+            sciAnim:Stop()
         end)
     end
 end
