@@ -1270,7 +1270,6 @@ for i, v:Instance in pairs(character:GetChildren()) do
 end
 
 -- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
--- This is a command handler that listens for player chat messages and executes debug commands based on the message content.
 owner.Chatted:Connect(function(msg : string)
     if msg:sub(1, 3) == "/e " then
         msg = msg:sub(4)
