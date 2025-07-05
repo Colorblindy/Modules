@@ -8,6 +8,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local AssetService = game:GetService("AssetService")
 local Chat = game:GetService("Chat")
+local HttpService   = game:GetService("HttpService")
 
 local owner:Player = owner
 local NS = NS
@@ -15,10 +16,11 @@ local NLS = NLS
 local NewScript = NewScript
 local NewLocalScript = NewLocalScript
 local printf, warnf = printf, warnf
+local format = string.format
 
 -- Main stuff
 
-local animHandler = loadstring(game:GetService("HttpService"):GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
+local animHandler = loadstring(HttpService:GetAsync("https://github.com/MechaXYZ/modules/raw/main/Anitracker.lua"))()
 local funcs = {}
 do -- funcs
 	--|| First Setup
@@ -117,11 +119,11 @@ do -- funcs
 			model.Parent = tool
 		end
 
-		--if owner and owner:FindFirstChild("Backpack") then
-		--	tool.Parent = backpack
-		--else
-		--	warn("Owner or Backpack not found!")
-		--end
+		if owner and owner:FindFirstChild("Backpack") then
+			tool.Parent = backpack
+		else
+			warn("Owner or Backpack not found!")
+		end
 
 		return tool
 	end
@@ -731,7 +733,7 @@ do -- songs
             Properties = {
                 Pitch = 0.11999999731779099;
                 Name = "Canyon";
-                Volume = 1.5;
+                Volume = 0.5;
                 SoundId = "rbxassetid://102327503362624";
                 Looped = true;
                 PlaybackSpeed = 0.11999999731779099;
@@ -755,7 +757,7 @@ do -- songs
             Properties = {
                 Pitch = 0.10999999940395355;
                 Name = "Mesmerizer";
-                Volume = 1.5;
+                Volume = 0.5;
                 SoundId = "rbxassetid://128168174331151";
                 Looped = true;
                 PlaybackSpeed = 0.10999999940395355;
@@ -779,7 +781,7 @@ do -- songs
             Properties = {
                 Pitch = 0.11999999731779099;
                 Name = "Rockefeller";
-                Volume = 1.5;
+                Volume = 0.5;
                 SoundId = "rbxassetid://109228501173685";
                 Looped = true;
                 PlaybackSpeed = 0.11999999731779099;
@@ -832,8 +834,6 @@ do -- songs
     end
 end
 
-local animations = require(128080079331424)
-
 animHandler.lerpFactor = 0.6
 animHandler.NoDisableTransition = true
 
@@ -848,7 +848,19 @@ local songList = songs.Songs
 
 -- args
 
-local name, speed, loop = ...
+local name, speed, mute, loop = ...
+
+-- funcs
+
+local function toBoolean(value)
+	if value == true or value == 1 or value == "true" or value == "1" then
+		return true
+	elseif value == false or value == 0 or value == "false" or value == "0" then
+		return false
+	end
+	
+	return false
+end
 
 -- setup
 
@@ -870,17 +882,37 @@ char:SetAttribute('PlayingAnims', true)
 
 -- anim
 
-local getAnim = animations.GetAnimation(name or 'Mesmerizer')
+if not name or type(name) ~= "string" then
+    name = "Mesmerizer"
+end
+if name == "list" then
+    printf("Available animations:")
+    for animName, _ in pairs(songList) do
+        printf(format("- %s", animName))
+    end
+    return
+end
+
+mute = toBoolean(mute)
+loop = toBoolean(loop)
+speed = tonumber(speed) or 1
+
+local success, getAnim = pcall(function()
+    return loadstring(HttpService:GetAsync(`https://github.com/Colorblindy/Modules/raw/main/AnimPlayer/{name}.lua`))()
+end)
 local getSong = nil
 if songList[name] then
 	getSong = songs:Get(songList[name])
 end
 
-if not getAnim then
-	return
+if not success or not getAnim then
+	return warnf(format("Animation not found or failed to load: %s", name))
 end
+
+printf(format("Playing animation: %s", name))
+printf(format("Playing song: %s", getSong and getSong.Name or "None"))
 if getSong then
-	funcs:makeSound(getSong, char.PrimaryPart, {Name = "AnimSong"}, getSong.Looped)
+	funcs:makeSound(getSong, char.PrimaryPart, {Name = "AnimSong", Volume = if mute then 0 else 0.5}, getSong.Looped)
 end
 
 if inUse then
